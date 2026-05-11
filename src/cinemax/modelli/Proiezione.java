@@ -20,6 +20,25 @@ public class Proiezione {
     public Film getFilm() { return film; }
     public double getCostoBiglietto() { return costoBiglietto; }
 
+    // Metodo equals specifico per la classe Proiezione
+    public boolean equals(Proiezione p) {
+        if (p == null) {
+            return false;
+        }
+        // Due proiezioni sono uguali se avvengono nello stesso momento e proiettano lo stesso film
+        return this.dataOra.equals(p.getDataOra()) && this.film.getTitolo().equals(p.getFilm().getTitolo());
+    }
+
+    // Metodo equals ereditato da Object (il controllo del tipo)
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Proiezione) {
+            return equals((Proiezione) o); // Delega al metodo specifico qui sopra
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public String toString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
