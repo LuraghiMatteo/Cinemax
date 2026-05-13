@@ -2,6 +2,10 @@ package cinemax.modelli;
 
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Questa classe rappresenta l'oggetto prenotazione che può essere effettuata da un cliente
+ * @author Matteo Luraghi - Matr: 765632 - Sede: VA
+ */
 public class Prenotazione {
     private String codiceUnivoco; // Richiesto univoco dalle specifiche
     private Cliente cliente;
@@ -20,6 +24,11 @@ public class Prenotazione {
     public Cliente getCliente() { return cliente; }
     public Proiezione getProiezione() { return proiezione; }
     public int getNumeroPosti() { return numeroPosti; }
+
+    // Setters
+    public void setProiezione(Proiezione nuovaProiezione) {
+        this.proiezione = nuovaProiezione;
+    }
 
     /**
      * Calcola il costo totale della prenotazione moltiplicando il numero di posti
