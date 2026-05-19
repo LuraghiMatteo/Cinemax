@@ -1,7 +1,7 @@
 package cinemax.gestori;
 
-import cinemax.Eccezioni.PostiEsauritiException;
-import cinemax.modelli.Genere;
+import cinemax.eccezioni.PostiEsauritiException;
+import cinemax.eccezioni.PrenotazioneException;
 import cinemax.modelli.Prenotazione;
 import cinemax.modelli.Proiezione;
 import cinemax.modelli.Cliente;
@@ -22,6 +22,7 @@ public class GestorePrenotazioni {
 
     // Attributi
     private List<Prenotazione> prenotazioni;
+    private int contatoreCodici = 1; // Contatore necessario per generare il codice univoco
     private static final int CAPIENZA_SALA = 200;
     private final String FILE_PATH = "data" + File.separator + "prenotazioni.csv";
 
@@ -58,43 +59,21 @@ public class GestorePrenotazioni {
     }
 
     /**
-     * Genera un codice alfanumerico univoco di 6 caratteri per una nuova prenotazione.
-     * Il metodo garantisce l'univocità confrontando ogni nuovo codice generato
-     * con quelli già presenti nella lista delle prenotazioni esistenti.
+     * Genera un codice univoco sequenziale alfanumerico con prefisso (es. PR000001, PR000002...).
+     * Il metodo garantisce l'univocità in tempo costante O(1) senza la necessità di cicli di verifica
+     * Supporta un limite massimo di 999.999 prenotazioni uniche mantenendo una lunghezza fissa di 8 caratteri totali.
      *
-     * @return Una stringa di 6 caratteri che rappresenta il codice univoco della prenotazione.
+     * @return Una stringa di 8 caratteri (2 alfabetici di prefisso e 6 numerici) che rappresenta
+     * il codice univoco della prenotazione.
      */
     private String generaCodiceUnivoco() {
-        String caratteri = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder codiceTrovato = new StringBuilder(); // Codice da restituire
-        Random rnd = new Random();
-        boolean esisteGia;
-        int lenCodice = 6; // Lunghezza del codice univoco
+        // Il pattern "PR%06d" concatena il prefisso statico aziendale "PR" alla formattazione del contatore numerico su 6 cifre totali.
+        String codice = String.format("PR%06d", this.contatoreCodici);
 
-        // Fintanto che non trovo un codice univoco continuo a generarlo
-        do {
-            // Svuoto la stringa se il ciclo sta facendo un secondo tentativo
-            codiceTrovato.setLength(0);
+        // Incremento il contatore di stato interno per preparare la sequenza alla successiva richiesta di prenotazione
+        this.contatoreCodici++;
 
-            // Creazione del codice
-            int indiceCasuale;
-            for (int i = 0; i < lenCodice; i++) {
-                indiceCasuale = rnd.nextInt(caratteri.length()); // Genero l'indice
-                codiceTrovato.append(caratteri.charAt(indiceCasuale)); // Prendo il carattere e lo attacco alla stringa
-            }
-
-            // Controllo se il codice esiste già nella lista delle prenotazioni lette/salvate
-            esisteGia = false;
-            for (Prenotazione p : prenotazioni) {
-                if (p.getCodiceUnivoco().contentEquals(codiceTrovato)) {
-                    esisteGia = true;
-                    break;
-                }
-            }
-
-        } while(esisteGia);
-
-        return codiceTrovato.toString();
+        return codice;
     }
 
     // --- METODI PER IL CLIENTE ---
@@ -118,17 +97,14 @@ public class GestorePrenotazioni {
         String codice = generaCodiceUnivoco();
         Prenotazione nuova = new Prenotazione(codice, cliente, proiezione, numeroPosti);
 
-        // Aggiornamento lista e file
+        // Aggiornamento lista
         prenotazioni.add(nuova);
-        salvaSuFile();
 
         return nuova;
     }
 
     /**
-     * Recupera l'elenco di tutte le prenotazioni effettuate da un cliente specifico.
-     * Questo metodo separa la logica di ricerca dalla visualizzazione, consentendo
-     * alla classe CineMax (TUI) di gestire la formattazione dell'output.
+     * Recupera l'elenco di tutte le prenotazioni effettuate da un cliente specifico se esistono.
      *
      * @param cliente L'oggetto Cliente di cui si vogliono recuperare le prenotazioni.
      * @return Una lista di oggetti Prenotazione associati al cliente; la lista sarà vuota se non ci sono match.
@@ -137,7 +113,7 @@ public class GestorePrenotazioni {
         List<Prenotazione> filtrate = new ArrayList<>();
 
         for (Prenotazione p : prenotazioni) {
-            // Verifico se la prenotazione appartiene al cliente passato sfruttando il metodo equals della classe Cliente
+            // Verifico se la prenotazione appartiene al cliente passato sfruttando il metodo equals della classe Utente
             if (p.getCliente().equals(cliente)) {
                 filtrate.add(p);
             }
@@ -148,14 +124,14 @@ public class GestorePrenotazioni {
 
     /**
      * Modifica la data di una prenotazione esistente sostituendo la proiezione associata.
-     * Come da specifiche, l'operazione è consentita solo se la proiezione originale
-     * e quella nuova sono entrambe successive alla data/ora odierna e se ci sono posti disponibili.
+     * L'operazione è consentita solo se la proiezione originale e quella nuova
+     * sono entrambe successive alla data/ora odierna e se ci sono posti disponibili.
      *
      * @param codiceUnivoco Il codice della prenotazione da modificare.
      * @param nuovaProiezione Il nuovo spettacolo a cui il cliente vuole partecipare.
-     * @return true se la modifica ha successo, false se fallisce (es. regole non rispettate).
+     * @throws PrenotazioneException Se uno dei vincoli aziendali o temporali viene violato.
      */
-    public boolean modificaPrenotazione(String codiceUnivoco, Proiezione nuovaProiezione) {
+    public void modificaPrenotazione(String codiceUnivoco, Proiezione nuovaProiezione) throws PrenotazioneException {
         Prenotazione daModificare = null;
 
         // Cerco la prenotazione
@@ -166,47 +142,36 @@ public class GestorePrenotazioni {
             }
         }
 
-        // Se non la trovo, mando un mssaggio di errore
+        // Se non la trovo, lancio l'eccezione
         if (daModificare == null) {
-            System.out.println("Errore: Prenotazione non trovata.");
-            return false;
+            throw new PrenotazioneException("La prenotazione con codice " + codiceUnivoco + " non esiste nel sistema.");
         }
 
-        // Prendo l'ora attuale
+        // Recupero ora attuale
         LocalDateTime oraAttuale = LocalDateTime.now();
 
-        // Controllo regole temporali: posso modificarla a patto che sia la vecchia che la nuova data siano successive alla data odierna)
-        // Se la proiezione originale è già passata, non consento l'eliminazione
+        // Controllo regole temporali descritte nelle specifiche
         if (daModificare.getProiezione().getDataOra().isBefore(oraAttuale)) {
-            System.out.println("Errore: La proiezione originale è già passata. Impossibile modificare.");
-            return false;
+            throw new PrenotazioneException("Impossibile modificare: lo spettacolo originale è già passato.");
         }
 
-        // Se la nuova data scelta è già passata, non consento la modifica
         if (nuovaProiezione.getDataOra().isBefore(oraAttuale)) {
-            System.out.println("Errore: La nuova data scelta è nel passato.");
-            return false;
+            throw new PrenotazioneException("Impossibile modificare: la nuova data scelta è nel passato.");
         }
 
-        // Controllo che il cliente non cambi film, ma che mantenga lo stesso della prenotazione originale
+        // Controllo che il cliente non cambi film
         if (!daModificare.getProiezione().getFilm().getTitolo().equals(nuovaProiezione.getFilm().getTitolo())) {
-            System.out.println("Errore: Stai cercando di cambiare film. Usa la cancellazione e fai una nuova prenotazione.");
-            return false;
+            throw new PrenotazioneException("Non puoi cambiare film durante la modifica. Cancella la prenotazione e creane una nuova.");
         }
 
         // Controllo disponibilità posti per la nuova proiezione
         int postiLiberiNuova = calcolaPostiLiberi(nuovaProiezione);
         if (daModificare.getNumeroPosti() > postiLiberiNuova) {
-            System.out.println("Errore: Non ci sono abbastanza posti liberi nella nuova data.");
-            return false;
+            throw new PrenotazioneException("Posti insufficienti nella nuova proiezione selezionata. Disponibili: " + postiLiberiNuova);
         }
 
-        // Se supera tutti i controlli applichiamo la modifica e salviamo su file
+        // Se supera tutti i controlli, applichiamo la modifica
         daModificare.setProiezione(nuovaProiezione);
-        salvaSuFile();
-
-        System.out.println("Prenotazione aggiornata con successo alla nuova data: " + nuovaProiezione.getDataOra());
-        return true;
     }
 
     /**
@@ -215,12 +180,12 @@ public class GestorePrenotazioni {
      * della proiezione non è ancora passata (vincolo temporale).
      *
      * @param codiceUnivoco La stringa di 6 caratteri che identifica la prenotazione.
-     * @return true se l'eliminazione è avvenuta con successo, false altrimenti.
+     * @throws PrenotazioneException Se la prenotazione non esiste o se lo spettacolo è già passato.
      */
-    public boolean eliminaPrenotazione(String codiceUnivoco) {
+    public void eliminaPrenotazione(String codiceUnivoco) throws PrenotazioneException {
         Prenotazione daRimuovere = null;
 
-        // Scorro la lista solo per trovare l'oggetto
+        // Scorro la lista per trovare l'oggetto
         for (Prenotazione p : prenotazioni) {
             if (p.getCodiceUnivoco().equals(codiceUnivoco)) {
                 daRimuovere = p;
@@ -228,23 +193,18 @@ public class GestorePrenotazioni {
             }
         }
 
-        // Se non trovo la prenotazione genero un errore
+        // Se non trovo la prenotazione, lancio l'eccezione
         if (daRimuovere == null) {
-            System.out.println("Errore: Nessuna prenotazione trovata con il codice " + codiceUnivoco);
-            return false;
+            throw new PrenotazioneException("Nessuna prenotazione trovata con il codice " + codiceUnivoco);
         }
 
         // Impediamo di cancellare prenotazioni di spettacoli già iniziati o passati
         if (daRimuovere.getProiezione().getDataOra().isBefore(LocalDateTime.now())) {
-            System.out.println("Errore: Impossibile cancellare la prenotazione. Lo spettacolo è già passato.");
-            return false;
+            throw new PrenotazioneException("Impossibile cancellare la prenotazione: lo spettacolo è già passato.");
         }
 
-        // Elimino la prenotazione e salvo gli aggiornamenti su file
+        // Se passa i controlli, elimino la prenotazione dalla lista
         prenotazioni.remove(daRimuovere);
-        salvaSuFile();
-
-        return true;
     }
 
     // --- METODI PER IL BIGLIETTAIO ---
@@ -256,21 +216,16 @@ public class GestorePrenotazioni {
      */
     public List<Prenotazione> visualizzaPrenotazioniOdierne() {
         List<Prenotazione> prenotazioniOdierne = new ArrayList<>();
-        LocalDate oggi = LocalDate.now(); // Recupero la data odierna
+        LocalDate oggi = LocalDate.now();
 
-        // Salvo solo le prenotazioni con data odierna
         for (Prenotazione p : prenotazioni) {
+            // Controllo che la data corrisponda con oggi
             if (p.getProiezione().getDataOra().toLocalDate().equals(oggi)) {
                 prenotazioniOdierne.add(p);
             }
         }
 
-        // Se non ci sono prenotazioni odierne
-        if (prenotazioniOdierne.isEmpty()) {
-            System.out.println("Nessuna prenotazione trovata per gli spettacoli di oggi.");
-        }
-
-        return prenotazioniOdierne;
+        return prenotazioniOdierne; // Restituisce la lista, la gestione del null va nel Main
     }
 
     /**
@@ -282,7 +237,6 @@ public class GestorePrenotazioni {
      */
     public Prenotazione cercaPrenotazionePerCodice(String codice) {
         for (Prenotazione p : prenotazioni) {
-            // Uso equalsIgnoreCase per evitare problemi se il bigliettaio digita in minuscolo
             if (p.getCodiceUnivoco().equalsIgnoreCase(codice)) {
                 return p;
             }
@@ -291,32 +245,37 @@ public class GestorePrenotazioni {
     }
 
     /**
-     * Ricerca tutte le prenotazioni effettuate da un cliente specifico.
+     * Ricerca tutte le prenotazioni effettuate da un cliente specifico tramite nome e cognome.
      *
      * @param nome Il nome del cliente.
      * @param cognome Il cognome del cliente.
-     * @return Una lista di prenotazioni associate a quel cliente.
+     * @return Una lista di prenotazioni associate a quel cliente (vuota se nessun match).
      */
     public List<Prenotazione> cercaPrenotazionePerCliente(String nome, String cognome) {
         List<Prenotazione> trovate = new ArrayList<>();
+
         for (Prenotazione p : prenotazioni) {
+            // Controllo che il cliente corrisponda
             if (p.getCliente().getNome().equalsIgnoreCase(nome) && p.getCliente().getCognome().equalsIgnoreCase(cognome)) {
                 trovate.add(p);
             }
         }
+
         return trovate;
     }
 
     /**
-     * Ricerca tutte le prenotazioni per proiezioni il cui titolo contiene la stringa cercata (ricerca parziale).
+     * Ricerca tutte le prenotazioni per proiezioni il cui titolo contiene la stringa cercata.
+     * Realizza una ricerca parziale e non accetta distinzioni tra maiuscole e minuscole.
      *
      * @param titoloParziale La parola o frase da cercare nel titolo del film.
      * @return Una lista di prenotazioni pertinenti.
      */
     public List<Prenotazione> cercaPrenotazionePerTitolo(String titoloParziale) {
         List<Prenotazione> trovate = new ArrayList<>();
+
         for (Prenotazione p : prenotazioni) {
-            // Trasformo entrambi i titoli in minuscolo e verifico se il titolo completo "contiene" la stringa cercata
+            // Controllo se la sotto-stringa compare nel titolo di un film
             if (p.getProiezione().getFilm().getTitolo().toLowerCase().contains(titoloParziale.toLowerCase())) {
                 trovate.add(p);
             }
@@ -326,7 +285,7 @@ public class GestorePrenotazioni {
 
     /**
      * Ricerca le prenotazioni in cui la data della proiezione ricade in un determinato intervallo.
-     * È possibile lasciare uno dei due limiti a "null" per fare ricerche aperte (es. "solo dopo una certa data").
+     * Permette ricerche aperte passando "null" come valore di uno dei due limiti.
      *
      * @param dataInizio Il limite inferiore (incluso). Passare null per ignorarlo.
      * @param dataFine Il limite superiore (incluso). Passare null per ignorarlo.
@@ -337,28 +296,34 @@ public class GestorePrenotazioni {
         boolean isDopoInizio, isPrimaFine;
 
         for (Prenotazione p : prenotazioni) {
-            // Estraggo la data della proiezione associata alla prenotazione
+
             LocalDate dataProiezione = p.getProiezione().getDataOra().toLocalDate();
 
-            // Controllo data inizio
+            // Verifica dataInizio
             if (dataInizio == null) {
-                isDopoInizio = true; // Nessun limite iniziale: va sempre bene
+                // L'utente non ha espresso un limite iniziale (ricerca aperta).
+                isDopoInizio = true;
             } else if (dataProiezione.isBefore(dataInizio)) {
-                isDopoInizio = false; // La data è troppo vecchia: scartiamo
+                // La data dello spettacolo è strettamente precedente alla data di inizio richiesta.
+                isDopoInizio = false;
             } else {
-                isDopoInizio = true; // La data è uguale o successiva all'inizio: ok
+                // La data dello spettacolo è uguale o successiva alla data di inizio.
+                isDopoInizio = true;
             }
 
-            // Controllo data fine
+            // Verifica dataFine
             if (dataFine == null) {
-                isPrimaFine = true; // Nessun limite finale: va sempre bene
+                // L'utente non ha espresso un limite finale (ricerca aperta verso il futuro).
+                isPrimaFine = true;
             } else if (dataProiezione.isAfter(dataFine)) {
-                isPrimaFine = false; // La data è troppo in là nel futuro: scartiamo
+                // La data dello spettacolo è strettamente successiva alla data di fine richiesta.
+                isPrimaFine = false;
             } else {
-                isPrimaFine = true; // La data è uguale o precedente alla fine: ok
+                // La data dello spettacolo è uguale o precedente alla data di fine.
+                isPrimaFine = true;
             }
 
-            // Se rispetta entrambi i criteri, la aggiungiamo alla lista dei risultati
+            // Se rispetta i vincoli aggiungo
             if (isDopoInizio && isPrimaFine) {
                 trovate.add(p);
             }
@@ -380,9 +345,24 @@ public class GestorePrenotazioni {
     public void caricaDaFile(GestoreUtenti gestoreUtenti, GestoreProiezioni gestoreProiezioni) {
         File f = new File(FILE_PATH);
 
-        // Controllo di sicurezza: se il file non esiste (es. primo avvio assoluto), usciamo senza errori
+        // Inizializzo l'ArrayList per evitare che rimanga null
+        this.prenotazioni = new ArrayList<>();
+
+        // Controllo di sicurezza: se il file non esiste, lo creiamo automaticamente
         if (!f.exists()) {
-            return;
+            try {
+                // Controllo anche se esiste la cartella padre "data" altrimenti la creo
+                File cartellaPadre = f.getParentFile();
+                if (cartellaPadre != null && !cartellaPadre.exists()) { // Lazy Evaluation
+                    cartellaPadre.mkdirs();
+                }
+                f.createNewFile();
+                return;
+
+            } catch (IOException e) {
+                System.out.println("Errore critico: impossibile creare il file delle prenotazioni: " + e.getMessage());
+                return;
+            }
         }
 
         try {
@@ -390,47 +370,62 @@ public class GestorePrenotazioni {
             BufferedReader fIn = new BufferedReader(r);
 
             String line = fIn.readLine();
-            // Creo il data formatter
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+            int posti, codiceNumerico;
+
             while (line != null) {
-                // Divido la riga usando la virgola
                 String[] campi = line.split(",");
 
-                // Controllo di sicurezza per evitare righe vuote o malformate
                 if (campi.length == 5) {
                     String codice = campi[0];
                     String username = campi[1];
+                    String titoloFilm = campi[2];
+                    String dataString = campi[3];
 
-                    // Rimuovo le virgolette "" che avevo aggiunto nel salvataggio
-                    String titoloFilm = campi[2].replace("\"", "");
-                    String dataString = campi[3].replace("\"", "");
+                    // All'interno del ciclo uso un try-catch locale per gestire le eccezioni di ricostruzione
+                    try {
+                        LocalDateTime dataOra = LocalDateTime.parse(dataString, formatter);
+                        posti = Integer.parseInt(campi[4]);
 
-                    // Converto la data da String a LocalDateTime
-                    LocalDateTime dataOra = LocalDateTime.parse(dataString, formatter);
+                        // Rimuoviamo il prefisso "PR" e convertiamo la parte rimanente in un intero.
+                        codiceNumerico = Integer.parseInt(codice.replace("PR", ""));
 
-                    // Converto il numero di posti da String a int
-                    int posti = Integer.parseInt(campi[4]);
+                        // Se il codice letto nel file è maggiore o uguale al contatore attuale,
+                        // spostiamo in avanti il contatore per garantire che le prossime nuove prenotazioni
+                        // abbiano un ID successivo e totalmente inedito.
+                        if (codiceNumerico >= this.contatoreCodici) {
+                            this.contatoreCodici = codiceNumerico + 1;
+                        }
 
-                    // Ricostruzione degli oggetti Cliente e Proiezione contenuti nella prenotazione
-                    // Chiediamo ai rispettivi gestori di darci gli oggetti corrispondenti
-                    Cliente cliente = (Cliente) gestoreUtenti.cercaUtentePerUsername(username);
-                    Proiezione proiezione = gestoreProiezioni.cercaProiezioneEsatta(titoloFilm, dataOra);
+                        Cliente cliente = (Cliente) gestoreUtenti.cercaUtentePerUsername(username);
+                        Proiezione proiezione = gestoreProiezioni.cercaProiezioneEsatta(titoloFilm, dataOra);
 
-                    // Se abbiamo trovato sia il cliente che la proiezione, ricreiamo la prenotazione
-                    if (cliente != null && proiezione != null) {
+                        // VALIDAZIONE DEI DATI: se qualcosa manca, scatta l'eccezione personalizzata
+                        if (cliente == null) {
+                            throw new PrenotazioneException("Il cliente con username '" + username + "' non è presente nel database utenti.");
+                        }
+                        if (proiezione == null) {
+                            throw new PrenotazioneException("La proiezione per il film '" + titoloFilm + "' in data " + dataString + " non esiste a palinsesto.");
+                        }
+
+                        // Se i controlli passano, l'oggetto viene costruito in sicurezza
                         Prenotazione p = new Prenotazione(codice, cliente, proiezione, posti);
-                        prenotazioni.add(p);
-                    } else {
-                        System.out.println("Attenzione: impossibile ricostruire la prenotazione " + codice + " (Cliente o Proiezione mancanti).");
+                        this.prenotazioni.add(p);
+
+                    } catch (PrenotazioneException e) {
+                        // Catturiamo l'eccezione e segnaliamo il problema specifico,
+                        // ma NON interrompiamo il ciclo. La riga successiva verrà letta normalmente.
+                        System.out.println("Errore di integrità alla riga [" + codice + "]: " + e.getMessage());
+                    } catch (Exception e) {
+                        // Protezione da parsing di numeri o date malformate nel CSV
+                        System.out.println("Errore di formato dati alla riga [" + codice + "]: campi corrotti nel file.");
                     }
                 }
-                line = fIn.readLine(); // Leggo la riga successiva
+                line = fIn.readLine();
             }
             fIn.close();
 
-        } catch (FileNotFoundException e) {
-            System.out.println("File prenotazioni non trovato: " + e.getMessage());
         } catch (IOException e) {
             System.out.println("Errore di lettura del file prenotazioni: " + e.getMessage());
         }
@@ -445,7 +440,7 @@ public class GestorePrenotazioni {
     public void salvaSuFile() {
         try {
             File f = new File(FILE_PATH);
-            FileWriter w = new FileWriter(f);
+            FileWriter w = new FileWriter(f, false);
             PrintWriter fOut = new PrintWriter(w);
 
             for (Prenotazione p : prenotazioni) {
