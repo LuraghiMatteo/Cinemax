@@ -34,7 +34,7 @@ public class GestorePrenotazioni {
         this.prenotazioni = new ArrayList<>();
     }
 
-    // --- METODI DI SUPPORTO ---
+    // METODI DI SUPPORTO
     /**
      * Calcola il numero di posti ancora disponibili per una specifica proiezione.
      * Il calcolo viene effettuato sottraendo il numero totale di posti già prenotati
@@ -76,7 +76,7 @@ public class GestorePrenotazioni {
         return codice;
     }
 
-    // --- METODI PER IL CLIENTE ---
+    // METODI PER IL CLIENTE
     /**
      * Crea una nuova prenotazione se i posti sono disponibili.
      * @param cliente Il cliente che prenota
@@ -207,7 +207,7 @@ public class GestorePrenotazioni {
         prenotazioni.remove(daRimuovere);
     }
 
-    // --- METODI PER IL BIGLIETTAIO ---
+    // METODI PER IL BIGLIETTAIO
     /**
      * Recupera l'elenco di tutte le prenotazioni relative agli spettacoli previsti per la giornata odierna.
      * Ignora l'orario specifico e confronta solo l'anno, il mese e il giorno.
@@ -332,7 +332,7 @@ public class GestorePrenotazioni {
         return trovate;
     }
 
-    // --- GESTIONE FILE ---
+    // GESTIONE FILE
     /**
      * Legge le prenotazioni dal file CSV e le carica nella memoria dell'applicazione.
      * Per ogni riga del file, il metodo estrae le informazioni testuali e utilizza

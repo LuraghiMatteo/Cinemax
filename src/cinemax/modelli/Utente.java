@@ -2,16 +2,33 @@ package cinemax.modelli;
 
 import java.time.LocalDate;
 
+/**
+ * Classe astratta che definisce la struttura comune a tutti gli utenti del sistema CineMax.
+ * Gestisce l'anagrafica di base, le credenziali di accesso crittografate ed il ruolo
+ * aziendale all'interno dell'applicazione.
+ * * @author Matteo Luraghi - Matr: 765632 - Sede: VA
+ */
 public abstract class Utente {
 
     private String nome;
     private String cognome;
     private String username;
-    private String password; //con hash
+    private String password; // Memorizzata sotto forma di Hash SHA-256
     private LocalDate dataNascita;
     private String luogoDomicilio;
     private Ruolo ruolo;
 
+    /**
+     * Costruttore completo per inizializzare un utente del sistema.
+     *
+     * @param nome           Il nome dell'utente.
+     * @param cognome        Il cognome dell'utente.
+     * @param username       L'identificativo univoco per il login.
+     * @param password       La stringa della password (già cifrata o da cifrare).
+     * @param dataNascita    La data di nascita (opzionale per alcuni ruoli).
+     * @param ruolo          Il ruolo assegnato nel sistema (es. CLIENTE, BIGLIETTAIO).
+     * @param luogoDomicilio La città o l'indirizzo di domicilio.
+     */
     public Utente(String nome, String cognome, String username, String password, LocalDate dataNascita, Ruolo ruolo, String luogoDomicilio) {
         this.nome = nome;
         this.cognome = cognome;
@@ -22,34 +39,46 @@ public abstract class Utente {
         this.luogoDomicilio = luogoDomicilio;
     }
 
-    public Ruolo getRuolo() {
-        return ruolo;
+    // Getters
+    public Ruolo getRuolo() { return ruolo; }
+    public String getLuogoDomicilio() { return luogoDomicilio; }
+    public LocalDate getDataNascita() { return dataNascita; }
+    public String getPassword() { return password; }
+    public String getUsername() { return username; }
+    public String getCognome() { return cognome; }
+    public String getNome() { return nome; }
+
+    /**
+     * Verifica l'uguaglianza logica tra questo utente ed un altro oggetto Utente.
+     * Il criterio di uguaglianza è basato sull'univocità dello username.
+     *
+     * @param u L'utente da confrontare con l'istanza corrente.
+     * @return true se gli username coincidono (case-insensitive), false altrimenti.
+     */
+    public boolean equals(Utente u) {
+        if (u == null) {
+            return false;
+        }
+        return this.username.equalsIgnoreCase(u.getUsername());
     }
 
-    public String getLuogoDomicilio() {
-        return luogoDomicilio;
+    /**
+     * Sovrascrittura del metodo equals ereditato da Object per supportare il polimorfismo
+     * e l'utilizzo corretto all'interno delle liste o collezioni di Java.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Utente) {
+            return equals((Utente) o);
+        } else {
+            return false;
+        }
     }
 
-    public LocalDate getDataNascita() {
-        return dataNascita;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getCognome() {
-        return cognome;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
+    /**
+     * Rigenera una vista testuale formattata a blocchi dei dettagli dell'utente,
+     * ideale per la visualizzazione allineata all'interno della TUI.
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -58,13 +87,11 @@ public abstract class Utente {
         sb.append("   DETTAGLI UTENTE - ").append(ruolo).append("\n");
         sb.append("======================================\n");
 
-        // String.format("%-15s") serve ad allineare il testo a sinistra con uno spazio di 15 caratteri
         sb.append(String.format("%-15s: %s\n", "Nome", nome));
         sb.append(String.format("%-15s: %s\n", "Cognome", cognome));
         sb.append(String.format("%-15s: %s\n", "Username", username));
         sb.append(String.format("%-15s: %s\n", "Domicilio", luogoDomicilio));
 
-        // Gestione della data opzionale
         String dataStr = (dataNascita != null) ? dataNascita.toString() : "N/D";
         sb.append(String.format("%-15s: %s\n", "Data Nascita", dataStr));
 
