@@ -1,5 +1,7 @@
 package cinemax.modelli;
 
+import java.util.Objects;
+
 public class Film {
 
     private String titolo;
@@ -25,6 +27,26 @@ public class Film {
     public int getAnno() { return anno; }
     public int getDurata() { return durata; }
     public int getEtaMinima() { return etaMinima; }
+
+    public String toCSV() {
+        return "\"" + titolo + "\"," +
+                genere + "," +
+                "\"" + regista + "\"," +
+                anno + "," +
+                durata + "," +
+                etaMinima;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Film film)) return false;
+        return anno == film.anno && durata == film.durata && etaMinima == film.etaMinima && Objects.equals(titolo, film.titolo) && genere == film.genere && Objects.equals(regista, film.regista);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(titolo, genere, regista, anno, durata, etaMinima);
+    }
 
     @Override
     public String toString() {
