@@ -3,9 +3,9 @@ package cinemax.gestori;
 import cinemax.modelli.Film;
 import cinemax.modelli.Proiezione;
 import cinemax.modelli.Genere; // Assumendo che esista l'enum
-import eccezioni.CostoNonValidoExeption;
-import eccezioni.DataNonValidaExeption;
-import eccezioni.NumeroCampiErratoExeption;
+import cinemax.eccezioni.CostoNonValidoExeption;
+import cinemax.eccezioni.DataNonValidaExeption;
+import cinemax.eccezioni.NumeroCampiErratoExeption;
 
 import java.io.*;
 import java.time.LocalDate;

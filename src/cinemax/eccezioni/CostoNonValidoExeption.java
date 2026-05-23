@@ -1,4 +1,4 @@
-package eccezioni;
+package cinemax.eccezioni;
 
 public class CostoNonValidoExeption extends RuntimeException {
     public CostoNonValidoExeption(String message) {
