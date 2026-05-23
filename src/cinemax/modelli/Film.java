@@ -2,6 +2,13 @@ package cinemax.modelli;
 
 import java.util.Objects;
 
+/**
+ * Questa classe rappresenta l'oggetto film.
+ * Memorizza le informazioni essenziali quali il titolo, il genere, il regista, l'anno,
+ * la durata e l'eta minima del film.
+ * @author Fabio Maffiolini - Matr: 765567 - Sede: VA
+ */
+
 public class Film {
 
     private String titolo;
@@ -11,6 +18,15 @@ public class Film {
     private int durata; // in minuti
     private int etaMinima;
 
+    /**
+     * Costruttore della classe film
+     * @param titolo
+     * @param genere
+     * @param regista
+     * @param anno
+     * @param durata
+     * @param etaMinima
+     */
     public Film(String titolo, Genere genere, String regista, int anno, int durata, int etaMinima) {
         this.titolo = titolo;
         this.genere = genere;
@@ -28,6 +44,10 @@ public class Film {
     public int getDurata() { return durata; }
     public int getEtaMinima() { return etaMinima; }
 
+    /**
+     * Converte gli attributi nella classe film in un formato csv
+     * @return "titolo",genere,"regista",anno,durata,etaMinima
+     */
     public String toCSV() {
         return "\"" + titolo + "\"," +
                 genere + "," +

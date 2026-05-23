@@ -2,7 +2,7 @@ package cinemax.gestori;
 
 import cinemax.modelli.Film;
 import cinemax.modelli.Proiezione;
-import cinemax.modelli.Genere; // Assumendo che esista l'enum
+import cinemax.modelli.Genere;
 import cinemax.eccezioni.CostoNonValidoExeption;
 import cinemax.eccezioni.DataNonValidaExeption;
 import cinemax.eccezioni.NumeroCampiErratoExeption;
@@ -14,11 +14,20 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Questa classe rappresenta il gestore di tutte le proiezioni
+ * @author Fabio Maffiolini - Matr: 765567 - Sede: VA
+ */
+
 public class GestoreProiezioni {
 
     private List<Proiezione> palinsesto;
     private final String FILE_PATH = "data" + File.separator + "proiezioni.csv";
 
+    /**
+     * Inizializza un ArrayList di proiezioni inizialmente vuoto
+     * @author Fabio Maffiolini - Matr: 765567 - Sede: VA
+     */
     public GestoreProiezioni() {
         this.palinsesto = new ArrayList<>();
     }
@@ -172,14 +181,17 @@ public class GestoreProiezioni {
     }
 
     /**
-     *
+     * Cerca le proiezion in base ai parametri titolo, genere, dataInizio, dataFine, prezzoMin, prezzoMax.
+     * Se i prametri sono null o prezzoMin e prezzoMax < 0 non vengono usati per la ricerca.
      * @param titolo
      * @param genere
      * @param dataInizio
      * @param dataFine
      * @param prezzoMin
      * @param prezzoMax
-     * @return
+     * @throws DataNonValidaExeption se la data inizio viene dopo la data di fine
+     * @throws CostoNonValidoExeption se il prezzoMin > prezzoMax
+     * @return lista di proiezioni valide
      */
     public List<Proiezione> cercaProiezione(String titolo, Genere genere, LocalDate dataInizio, LocalDate dataFine, double prezzoMin, double prezzoMax) {
         if (dataInizio != null && dataFine != null && dataInizio.isAfter(dataFine)) {
@@ -222,6 +234,10 @@ public class GestoreProiezioni {
 
 
     // --- GESTIONE FILE ---
+
+    /**
+     * Carica i dati presenti in proiezioni.csv se il file esiste
+     */
     public void caricaDaFile() {
         try {
             File file = new File(FILE_PATH);
@@ -274,6 +290,11 @@ public class GestoreProiezioni {
 
     }
 
+    /**
+     * Salva i dati in data/proiezioni.csv nel seguente formato
+     * data_ora_proiezione,titolo_film,genere,regista,anno,durata_minuti,eta_minima,prezzo_biglietto
+     * se il file e/o la cartella non è presente viene creata automaticamente
+     */
     public void salvaSuFile() {
         try {
             File file = new File(FILE_PATH);
@@ -293,6 +314,4 @@ public class GestoreProiezioni {
             throw new RuntimeException(e);
         }
     }
-
-
 }

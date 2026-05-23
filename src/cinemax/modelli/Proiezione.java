@@ -4,11 +4,23 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+/**
+ * Questa classe rappresenta l'oggetto proiezione.
+ * Memorizza le informazioni essenziali quali la data e ora, il film e il costo del biglietto
+ * di una determinata proiezione
+ * @author Fabio Maffiolini - Matr: 765567 - Sede: VA
+ */
 public class Proiezione implements Comparable<Proiezione> {
     private LocalDateTime dataOra;
     private Film film;
     private double costoBiglietto;
 
+    /**
+     * Costruttore della classe proiezione
+     * @param dataOra
+     * @param film
+     * @param costoBiglietto
+     */
     public Proiezione(LocalDateTime dataOra, Film film, double costoBiglietto) {
         this.dataOra = dataOra;
         this.film = film;
@@ -21,6 +33,10 @@ public class Proiezione implements Comparable<Proiezione> {
     public Film getFilm() { return film; }
     public double getCostoBiglietto() { return costoBiglietto; }
 
+    /**
+     * Converte gli attributi nella classe proiezione in un formato csv
+     * @return "dataOra",film.toCSV(),costoBiglietto
+     */
     public String toCsv() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
