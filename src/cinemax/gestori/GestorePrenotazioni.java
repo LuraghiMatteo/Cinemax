@@ -1,5 +1,6 @@
 package cinemax.gestori;
 
+import cinemax.eccezioni.NumeroCampiErratoExeption;
 import cinemax.eccezioni.PostiEsauritiException;
 import cinemax.eccezioni.PrenotazioneException;
 import cinemax.modelli.Prenotazione;
@@ -399,7 +400,7 @@ public class GestorePrenotazioni {
                         }
 
                         Cliente cliente = (Cliente) gestoreUtenti.cercaUtentePerUsername(username);
-                        Proiezione proiezione = gestoreProiezioni.cercaProiezioneEsatta(titoloFilm, dataOra);
+                        Proiezione proiezione = gestoreProiezioni.cercaProiezione(titoloFilm, dataOra);
 
                         // VALIDAZIONE DEI DATI: se qualcosa manca, scatta l'eccezione personalizzata
                         if (cliente == null) {
@@ -421,6 +422,8 @@ public class GestorePrenotazioni {
                         // Protezione da parsing di numeri o date malformate nel CSV
                         System.out.println("Errore di formato dati alla riga [" + codice + "]: campi corrotti nel file.");
                     }
+                }else {
+                    throw new NumeroCampiErratoExeption("I campi ricevuti risultano diversi o insufficienti");
                 }
                 line = fIn.readLine();
             }
