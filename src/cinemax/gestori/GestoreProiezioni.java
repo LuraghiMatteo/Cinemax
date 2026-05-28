@@ -183,6 +183,8 @@ public class GestoreProiezioni {
     /**
      * Cerca le proiezion in base ai parametri titolo, genere, dataInizio, dataFine, prezzoMin, prezzoMax.
      * Se i prametri sono null o prezzoMin e prezzoMax < 0 non vengono usati per la ricerca.
+     * Se la dataInizio è uguale alla dataFine cerca i film in quella data specifica.
+     * Se il prezzoMin è uguale a prezzoMax cerca il film con il costo del biglietto preciso.
      * @param titolo
      * @param genere
      * @param dataInizio
@@ -207,7 +209,7 @@ public class GestoreProiezioni {
             // Filtro titolo
             if (titolo != null && !titolo.trim().isEmpty()) {
                 if (!p.getFilm().getTitolo().toLowerCase().contains(titolo.toLowerCase())) {
-                    continue; // Scarta e passa alla prossima
+                    continue;
                 }
             }
             // Filtro genere
@@ -216,9 +218,12 @@ public class GestoreProiezioni {
             }
             // Filtro date
             if (dataInizio != null && dataFine != null) {
-                LocalDate dataP = p.getDataOra().toLocalDate();
-                if (dataP.isBefore(dataInizio) || dataP.isAfter(dataFine)) {
-                    continue;
+                if (p.getDataOra().toLocalDate().isAfter(dataInizio.minusDays(1)) && p.getDataOra().toLocalDate().isBefore(dataFine.plusDays(1))) {
+                    proiezioni.add(p);
+                }else if (dataInizio.isEqual(dataFine)) {
+                    if (p.getDataOra().toLocalDate().isEqual(dataInizio)) {
+                        proiezioni.add(p);
+                    }
                 }
             }
             // Filtro prezzo
@@ -230,6 +235,39 @@ public class GestoreProiezioni {
             proiezioni.add(p);
         }
         return proiezioni;
+    }
+
+    /**
+     * Ritorna la proiezione esatta tramite il titolo del film e la data e ora.
+     * @param titoloFilm
+     * @param dataOra
+     * @throws NullPointerException se la dataOra o titoloFilm sono null
+     * @return Proiezione se la proiezione esiste altrimenti null
+     */
+    public Proiezione cercaProiezioneEsatta(String titoloFilm, LocalDateTime dataOra){
+        if (dataOra == null) {
+            throw new NullPointerException("Il titolo non può essere null");
+        }
+        if (dataOra == null) {
+            throw new NullPointerException("La data e ora non devono essere null");
+        }
+        for (Proiezione p : palinsesto) {
+            if (p.getFilm().getTitolo().toLowerCase().contains(titoloFilm.toLowerCase()) && p.getDataOra().isEqual(dataOra)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Data una lista di proiezioni ne visualizza 25 da un index specifico
+     * @param proiezioni
+     * @param index
+     */
+    public void visualizzaProiezioni(List<Proiezione> proiezioni, int index){
+        for (int i = index; i < proiezioni.toArray().length && i < index+25; i++) {
+            System.out.println(proiezioni.get(i));
+        }
     }
 
 
