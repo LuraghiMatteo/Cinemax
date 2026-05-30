@@ -7,6 +7,7 @@ import cinemax.modelli.Prenotazione;
 import cinemax.modelli.Proiezione;
 import cinemax.eccezioni.PrenotazioneException; // Assicurati che il package sia corretto
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
@@ -75,7 +76,9 @@ public class MenuCliente {
         System.out.println("\n--- NUOVA PRENOTAZIONE ---");
 
         // Recupero dell'elenco delle proiezioni attive e non scadute a sistema
-        List<Proiezione> proiezioni = gProiezioni.getProiezioniDisponibili();
+        LocalDate oggi = LocalDate.now();
+        LocalDate fineAnno = oggi.plusYears(1);
+        List<Proiezione> proiezioni = gProiezioni.cercaProiezione(null, null, oggi, fineAnno, -1, -1);
         if (proiezioni.isEmpty()) {
             System.out.println("Al momento non ci sono proiezioni disponibili nel cinema.");
             return;
@@ -98,8 +101,6 @@ public class MenuCliente {
             Proiezione scelta = proiezioni.get(indice);
             System.out.print("Quanti posti desideri prenotare? ");
             int posti = Integer.parseInt(sc.nextLine());
-
-            // Controllo di integrità locale sui limiti dell'input inserito
             if (posti <= 0) {
                 System.out.println("Errore: Il numero di posti deve essere maggiore di zero.");
                 return;
@@ -115,7 +116,7 @@ public class MenuCliente {
             // Cattura i tentativi di inserimento di testo alfabetico dove sono richiesti numeri interi
             System.out.println("Errore: Inserisci un valore numerico valido.");
         } catch (Exception e) {
-            // Intercetta PostiEsauritiException o altre eccezioni di business sollevate dal gestore
+            // Intercetta PostiEsauritiException o altre eccezioni sollevate dal gestore
             System.out.println("Impossibile prenotare: " + e.getMessage());
         }
     }
@@ -130,7 +131,7 @@ public class MenuCliente {
     private static void mostraPrenotazioni(Cliente cliente, GestorePrenotazioni gPrenotazioni) {
         System.out.println("\n--- LE TUE PRENOTAZIONI ---");
 
-        // Metodo gestore per filtrare le sole prenotazioni di titolarità del cliente
+        // Metodo gestore per filtrare le sole prenotazioni del cliente
         List<Prenotazione> mie = gPrenotazioni.getPrenotazioniPerCliente(cliente);
 
         // Se la lista restituita è vuota, notifichiamo l'assenza di record all'utente
@@ -148,8 +149,8 @@ public class MenuCliente {
 
     /**
      * Gestisce la modifica di una prenotazione esistente.
-     * Acquisisce il codice identificativo univoco della prenotazione e permette di selezionare una nuova
-     * proiezione alternativa, inoltrando la richiesta al gestore.
+     * Acquisisce il codice identificativo univoco della prenotazione, ne recupera il film
+     * e permette di selezionare una nuova proiezione alternativa per lo stesso titolo.
      *
      * @param gPrenotazioni Il gestore deputato all'elaborazione e aggiornamento della prenotazione.
      * @param gProiezioni   Il gestore deputato al recupero delle date alternative a palinsesto.
@@ -162,15 +163,28 @@ public class MenuCliente {
         System.out.print("Inserisci il codice univoco della prenotazione da modificare (es. PR000001): ");
         String codice = sc.nextLine().trim();
 
-        // Verifica preliminare sulla disponibilità di spettacoli alternativi
-        List<Proiezione> proiezioni = gProiezioni.getProiezioniDisponibili();
+        // Recupero prenotazione
+        Prenotazione vecchiaPrenotazione = gPrenotazioni.cercaPrenotazionePerCodice(codice);
+        if (vecchiaPrenotazione == null) {
+            System.out.println("Errore: Nessuna prenotazione trovata con il codice " + codice);
+            return;
+        }
+
+        // Recupero il titolo esatto del film associato alla vecchia prenotazione
+        String titoloFilm = vecchiaPrenotazione.getProiezione().getFilm().getTitolo();
+
+        // Ricerca nuove Date
+        LocalDate oggi = LocalDate.now();
+        LocalDate fineAnno = oggi.plusYears(1);
+        List<Proiezione> proiezioni = gProiezioni.cercaProiezione(titoloFilm, null, oggi, fineAnno, -1, -1);
+
         if (proiezioni.isEmpty()) {
-            System.out.println("Nessuna nuova data disponibile a sistema.");
+            System.out.println("Al momento non ci sono altre date future disponibili per il film: " + titoloFilm);
             return;
         }
 
         // Visualizzazione delle possibili opzioni di cambio data/ora
-        System.out.println("Seleziona la nuova data/ora per lo stesso film:");
+        System.out.println("Seleziona la nuova data/ora per il film '" + titoloFilm + "':");
         for (int i = 0; i < proiezioni.size(); i++) {
             System.out.println("[" + i + "] " + proiezioni.get(i));
         }
