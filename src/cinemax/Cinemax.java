@@ -2,10 +2,12 @@ package cinemax;
 
 import cinemax.gestori.GestoreProiezioni;
 import cinemax.gestori.GestoreUtenti;
+import cinemax.gestori.GestorePrenotazioni;
 import cinemax.menu.MenuBigliettaio;
 import cinemax.menu.MenuCliente;
 import cinemax.menu.MenuGuest;
 import cinemax.menu.MenuProiezionista;
+import cinemax.modelli.Cliente;
 import cinemax.modelli.Utente;
 import java.util.Scanner;
 
@@ -14,40 +16,53 @@ public class Cinemax {
 
         Scanner sc = new Scanner(System.in);
         String sel;
+
+        // Inizializzazione centralizzata e caricamento database su disco
         GestoreUtenti gestoreUtenti = new GestoreUtenti();
         gestoreUtenti.caricaDaFile();
-        GestoreProiezioni gestoreProiezioni = new GestoreProiezioni();
-        gestoreProiezioni.caricaDaFile();
 
+        GestoreProiezioni gestoreProiezioni = new GestoreProiezioni();
+        gestoreProiezioni.caricaDaFile(); // Rimuovi il commento quando avrai il metodo pronto
+
+        GestorePrenotazioni gestorePrenotazioni = new GestorePrenotazioni();
+        gestorePrenotazioni.caricaDaFile(gestoreUtenti, gestoreProiezioni);
         boolean chiudi = false;
 
         do {
-            System.out.println("Benvenuto in Cinemax!! ");
-            System.out.println("Vuoi proseguire con l'autenticazione oppure come guest?");
-            System.out.println("[1] Login");
-            System.out.println("[2] Guest");
-            System.out.println("[3] Registrati");
-            System.out.println("[X] esci");
-            System.out.printf("Scegli opzione: ");
-            sel = sc.next().toUpperCase();
+            System.out.println("\n=== BENVENUTO IN CINEMAX !! ===");
+            System.out.println("[1] Login (Accedi al sistema)");
+            System.out.println("[2] Menu Guest (Esplora senza registrarti)");
+            System.out.println("[3] Registrati come nuovo cliente");
+            System.out.println("[X] Esci dal programma");
+            System.out.print("Scegli un'opzione: ");
+            sel = sc.nextLine().trim().toUpperCase(); // Usiamo nextLine() coerentemente per evitare problemi di buffer
 
             switch (sel) {
                 case "1":
-                    Utente utente = gestoreUtenti.login("", "");
+                    System.out.print("Inserisci lo username: ");
+                    String user = sc.nextLine().trim();
+                    System.out.print("Inserisci la password: ");
+                    String pass = sc.nextLine().trim();
+
+                    // Richiesta di autenticazione logica al gestore
+                    Utente utente = gestoreUtenti.login(user, pass);
+
                     if (utente != null) {
                         switch (utente.getRuolo()) {
                             case CLIENTE:
-                                MenuCliente.menu();
+                                MenuCliente.menu((Cliente) utente, gestorePrenotazioni, gestoreProiezioni);
                                 break;
                             case BIGLIETTAIO:
-                                MenuBigliettaio.menu();
+                                MenuBigliettaio.menu(gestorePrenotazioni);
                                 break;
                             case PROIEZIONISTA:
                                 MenuProiezionista.menu();
                                 break;
                             default:
-                                System.err.println("credenziali non valide. Se non sei registrato registrati");
+                                System.out.println("Ruolo di sistema non riconosciuto.");
                         }
+                    } else {
+                        System.out.println("Errore: Credenziali non valide. Se non sei registrato, seleziona l'opzione [3].");
                     }
                     break;
                 case "2":
@@ -58,13 +73,21 @@ public class Cinemax {
                     MenuCliente.menu();
                     break;
                 case "X":
-                    System.out.println("Uscita dal programma");
+                    // Il salvataggio dei file avviene esclusivamente qui all'atto di chiusura
+                    // massimizzando le prestazioni del software.
+                    System.out.println("\nSalvataggio dei database in corso...");
+                    gestoreUtenti.salvaSuFile();
+                    gestorePrenotazioni.salvaSuFile();
+                    // gestoreProiezioni.salvaSuFile();
+                    System.out.println("Tutti i dati sono al sicuro. Arrivederci!");
                     break;
+
                 default:
                     System.err.println("Comando non valido. Riprova");
             }
 
         }while (!sel.equals("X") && !chiudi);
 
+        sc.close();
     }
 }
