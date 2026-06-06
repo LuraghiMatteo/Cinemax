@@ -259,7 +259,7 @@ public class MenuGuest {
      *
      * @param gestoreUtenti
      */
-    public static void registraGuest(GestoreUtenti gestoreUtenti) {
+    public static void registraGuest(GestoreUtenti gestoreUtenti) {//FIXME la data deve essere facoltativa ma se non inserita da errore
         Scanner sc = new Scanner(System.in);
         String nome, cognome, username, password, luogoDomicilio;
         LocalDate dataNascita = null;

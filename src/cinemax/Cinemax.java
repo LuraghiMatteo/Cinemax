@@ -9,10 +9,11 @@ import cinemax.menu.MenuGuest;
 import cinemax.menu.MenuProiezionista;
 import cinemax.modelli.Cliente;
 import cinemax.modelli.Utente;
+
 import java.util.Scanner;
 
 public class Cinemax {
-    public static void main(String[] args){
+    public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
         String sel;
@@ -55,7 +56,7 @@ public class Cinemax {
                                 chiudi = MenuBigliettaio.menu(gestorePrenotazioni);
                                 break;
                             case PROIEZIONISTA:
-                                chiudi = MenuProiezionista.menu();
+                                chiudi = MenuProiezionista.menu(gestoreProiezioni);
                                 break;
                             default:
                                 System.out.println("Ruolo di sistema non riconosciuto.");
@@ -78,10 +79,11 @@ public class Cinemax {
                     System.err.println("Comando non valido. Riprova");
             }
 
-        }while (!sel.equals("X") && !chiudi);
+        } while (!sel.equals("X") && !chiudi);
 
         // Il salvataggio dei file avviene esclusivamente qui all'atto di chiusura
         // massimizzando le prestazioni del software in RAM.
+        //FIXME salvare solo se sono state fatte modifiche
         System.out.println("\nSalvataggio dei database in corso...");
         gestoreUtenti.salvaSuFile();
         gestorePrenotazioni.salvaSuFile();
