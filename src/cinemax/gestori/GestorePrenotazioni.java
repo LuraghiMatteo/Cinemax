@@ -400,7 +400,7 @@ public class GestorePrenotazioni {
                         }
 
                         Cliente cliente = (Cliente) gestoreUtenti.cercaUtentePerUsername(username);
-                        Proiezione proiezione = gestoreProiezioni.cercaProiezione(titoloFilm, dataOra);
+                        Proiezione proiezione = gestoreProiezioni.cercaProiezioneEsatta(titoloFilm, dataOra);
 
                         // VALIDAZIONE DEI DATI: se qualcosa manca, scatta l'eccezione personalizzata
                         if (cliente == null) {
