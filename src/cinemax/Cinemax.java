@@ -16,13 +16,10 @@ public class Cinemax {
 
         Scanner sc = new Scanner(System.in);
         String sel;
-
-        // Inizializzazione centralizzata e caricamento database su disco
         GestoreUtenti gestoreUtenti = new GestoreUtenti();
         gestoreUtenti.caricaDaFile();
-
         GestoreProiezioni gestoreProiezioni = new GestoreProiezioni();
-        gestoreProiezioni.caricaDaFile(); // Rimuovi il commento quando avrai il metodo pronto
+        gestoreProiezioni.caricaDaFile();
 
         GestorePrenotazioni gestorePrenotazioni = new GestorePrenotazioni();
         gestorePrenotazioni.caricaDaFile(gestoreUtenti, gestoreProiezioni);
@@ -65,16 +62,17 @@ public class Cinemax {
                         System.out.println("Errore: Credenziali non valide. Se non sei registrato, seleziona l'opzione [3].");
                     }
                     break;
+
                 case "2":
                     chiudi = MenuGuest.menu(gestoreUtenti, gestoreProiezioni);
                     break;
                 case "3":
                     MenuGuest.registraGuest(gestoreUtenti);
-                    MenuCliente.menu();
                     break;
+
                 case "X":
                     // Il salvataggio dei file avviene esclusivamente qui all'atto di chiusura
-                    // massimizzando le prestazioni del software.
+                    // massimizzando le prestazioni del software in RAM.
                     System.out.println("\nSalvataggio dei database in corso...");
                     gestoreUtenti.salvaSuFile();
                     gestorePrenotazioni.salvaSuFile();
