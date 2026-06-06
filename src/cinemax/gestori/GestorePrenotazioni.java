@@ -77,6 +77,17 @@ public class GestorePrenotazioni {
         return codice;
     }
 
+    /**
+     * Data una lista di proiezioni ne visualizza 25 da un index specifico
+     * @param prenotazioni
+     * @param index
+     */
+    public static void visualizzaPrenotazioni(List<Prenotazione> prenotazioni, int index){
+        for (int i = index; i < prenotazioni.toArray().length && i < index+25; i++) {
+            System.out.println("[" + i  + "]" + prenotazioni.get(i));
+        }
+    }
+
     // METODI PER IL CLIENTE
     /**
      * Crea una nuova prenotazione se i posti sono disponibili.
@@ -428,6 +439,7 @@ public class GestorePrenotazioni {
                 line = fIn.readLine();
             }
             fIn.close();
+            r.close();
 
         } catch (IOException e) {
             System.out.println("Errore di lettura del file prenotazioni: " + e.getMessage());
@@ -451,6 +463,7 @@ public class GestorePrenotazioni {
                 fOut.print("\n");
             }
             fOut.close();
+            w.close();
 
         } catch(FileNotFoundException e) {
             System.out.println("Errore: Impossibile trovare o creare il file delle prenotazioni.");

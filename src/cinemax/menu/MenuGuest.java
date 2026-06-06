@@ -239,6 +239,7 @@ public class MenuGuest {
                         }
                     } while (!sel.equals("esci"));
                     break;
+                case "x":
                 case "X":
                     chiudi = true;
                     break;
@@ -286,7 +287,8 @@ public class MenuGuest {
             }
 
             // Data Nascita
-            System.out.print("Inserisci la data di nascita (formato AAAA-MM-DD, es. 1995-05-24): ");
+            System.out.println("Inserisci la data di nascita (formato AAAA-MM-DD, es. 1995-05-24)");
+            System.out.print("Campo facoltativo, se non vui inserirlo premi invio: ");
             String dataString = sc.nextLine().trim();
             try {
                 dataNascita = LocalDate.parse(dataString);

@@ -3,7 +3,7 @@ data_ora_proiezione,titolo_film,genere,regista,anno,durata_minuti,eta_minima,pre
 "2027-12-29 16:00:00","Good Will Hunting",DRAMA,"Gus Van Sant",1997,126,0,8.5
 "2027-12-29 12:30:00","The Best Years of Our Lives",DRAMA,"William Wyler",1946,170,12,8.5
 "2027-12-29 10:00:00","To Have and Have Not",ADVENTURE,"Howard Hawks",1944,100,6,8.0
-"2027-12-28 15:30:00","Blue Velvet",DRAMA,"David Lynch",1986,120,12,7.50
+"2027-12-28 15:30:00","Blue Velvet",DRAMA,"David Lynch",1986,120,12,7.5
 "2027-12-28 13:00:00","The Philadelphia Story",COMEDY,"George Cukor",1940,112,12,8.5
 "2027-12-28 10:00:00","Good Will Hunting",DRAMA,"Gus Van Sant",1997,126,0,6.5
 "2027-12-27 14:00:00","The Blues Brothers",ACTION,"John Landis",1980,133,0,8.5

@@ -20,7 +20,7 @@ public class MenuBigliettaio {
      *
      * @param gestorePrenotazioni Il gestore contenente la logica e i dati delle prenotazioni.
      */
-    public static void menu(GestorePrenotazioni gestorePrenotazioni) {
+    public static boolean menu(GestorePrenotazioni gestorePrenotazioni) {
         Scanner sc = new Scanner(System.in);
         String sel;
 
@@ -46,6 +46,7 @@ public class MenuBigliettaio {
                     System.out.println("Opzione non valida. Riprova.");
             }
         } while (!sel.equals("X"));
+        return true;
     }
 
     /**
@@ -64,10 +65,7 @@ public class MenuBigliettaio {
         }
 
         // visualizzazione dettagliata dei biglietti venduti per oggi
-        for (Prenotazione p : odierne) {
-            System.out.println(p);
-            System.out.println("-----------------------------------");
-        }
+        stampalista(odierne);
     }
 
     /**
@@ -152,9 +150,17 @@ public class MenuBigliettaio {
             return;
         }
         System.out.println("\nCorrispondenze rintracciate (" + risultati.size() + "):");
-        for (Prenotazione p : risultati) {
-            System.out.println(p);
-            System.out.println("-----------------------------------");
-        }
+
+        Scanner sc = new Scanner(System.in);
+        int index = 0;
+        do {
+            GestorePrenotazioni.visualizzaPrenotazioni(risultati, index);
+            index += 25;
+            if (index < risultati.toArray().length) {
+                System.out.print("Proiezioni " + index + " su " + risultati.toArray().length + ". ");
+                System.out.print("Premere invio per continuare");
+                sc.nextLine();
+            }
+        } while (index < risultati.toArray().length);
     }
 }

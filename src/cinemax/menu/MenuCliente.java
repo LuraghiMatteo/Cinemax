@@ -25,7 +25,7 @@ public class MenuCliente {
      * @param gestorePrenotazioni Il gestore delle prenotazioni.
      * @param gestoreProiezioni   Il gestore del palinsesto dei film.
      */
-    public static void menu(Cliente cliente, GestorePrenotazioni gestorePrenotazioni, GestoreProiezioni gestoreProiezioni) {
+    public static boolean menu(Cliente cliente, GestorePrenotazioni gestorePrenotazioni, GestoreProiezioni gestoreProiezioni) {
         Scanner sc = new Scanner(System.in);
         String sel;
 
@@ -60,6 +60,7 @@ public class MenuCliente {
                     System.out.println("Opzione non valida. Riprova.");
             }
         } while (!sel.equals("X"));
+        return true;
     }
 
     /**
@@ -78,16 +79,22 @@ public class MenuCliente {
         // Recupero dell'elenco delle proiezioni attive e non scadute a sistema
         LocalDate oggi = LocalDate.now();
         LocalDate fineAnno = oggi.plusYears(1);
-        List<Proiezione> proiezioni = gProiezioni.cercaProiezione(null, null, oggi, fineAnno, -1, -1);
+        List<Proiezione> proiezioni = gProiezioni.cercaProiezione(oggi, fineAnno);
         if (proiezioni.isEmpty()) {
             System.out.println("Al momento non ci sono proiezioni disponibili nel cinema.");
             return;
         }
 
-        // Stampa indicizzata del palinsesto per permettere una selezione numerica da menù
-        for (int i = 0; i < proiezioni.size(); i++) {
-            System.out.println("[" + i + "] " + proiezioni.get(i));
-        }
+        int index = 0;
+        do {
+            GestoreProiezioni.visualizzaProiezioni(proiezioni, index);
+            index += 25;
+            if (index < proiezioni.toArray().length) {
+                System.out.print("Proiezioni " + index + " su " + proiezioni.toArray().length + ". ");
+                System.out.print("Premere invio per continuare");
+                sc.nextLine();
+            }
+        } while (index < proiezioni.toArray().length);
 
         System.out.print("Seleziona il numero della proiezione desiderata: ");
         try {
@@ -185,10 +192,16 @@ public class MenuCliente {
 
         // Visualizzazione delle possibili opzioni di cambio data/ora
         System.out.println("Seleziona la nuova data/ora per il film '" + titoloFilm + "':");
-        for (int i = 0; i < proiezioni.size(); i++) {
-            System.out.println("[" + i + "] " + proiezioni.get(i));
-        }
-        System.out.print("Scegli la nuova proiezione: ");
+        int index = 0;
+        do {
+            GestoreProiezioni.visualizzaProiezioni(proiezioni, index);
+            index += 25;
+            if (index < proiezioni.toArray().length) {
+                System.out.print("Proiezioni " + index + " su " + proiezioni.toArray().length + ". ");
+                System.out.print("Premere invio per continuare");
+                sc.nextLine();
+            }
+        } while (index < proiezioni.toArray().length);
 
         try {
             // Controllo che l'indice sia valido

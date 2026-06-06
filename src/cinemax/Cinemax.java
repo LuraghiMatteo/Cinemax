@@ -16,14 +16,16 @@ public class Cinemax {
 
         Scanner sc = new Scanner(System.in);
         String sel;
+        boolean chiudi = false;
+
         GestoreUtenti gestoreUtenti = new GestoreUtenti();
         gestoreUtenti.caricaDaFile();
+
         GestoreProiezioni gestoreProiezioni = new GestoreProiezioni();
         gestoreProiezioni.caricaDaFile();
 
         GestorePrenotazioni gestorePrenotazioni = new GestorePrenotazioni();
         gestorePrenotazioni.caricaDaFile(gestoreUtenti, gestoreProiezioni);
-        boolean chiudi = false;
 
         do {
             System.out.println("\n=== BENVENUTO IN CINEMAX !! ===");
@@ -47,13 +49,13 @@ public class Cinemax {
                     if (utente != null) {
                         switch (utente.getRuolo()) {
                             case CLIENTE:
-                                MenuCliente.menu((Cliente) utente, gestorePrenotazioni, gestoreProiezioni);
+                                chiudi = MenuCliente.menu((Cliente) utente, gestorePrenotazioni, gestoreProiezioni);
                                 break;
                             case BIGLIETTAIO:
-                                MenuBigliettaio.menu(gestorePrenotazioni);
+                                chiudi = MenuBigliettaio.menu(gestorePrenotazioni);
                                 break;
                             case PROIEZIONISTA:
-                                MenuProiezionista.menu();
+                                chiudi = MenuProiezionista.menu();
                                 break;
                             default:
                                 System.out.println("Ruolo di sistema non riconosciuto.");
@@ -62,22 +64,14 @@ public class Cinemax {
                         System.out.println("Errore: Credenziali non valide. Se non sei registrato, seleziona l'opzione [3].");
                     }
                     break;
-
                 case "2":
                     chiudi = MenuGuest.menu(gestoreUtenti, gestoreProiezioni);
                     break;
                 case "3":
                     MenuGuest.registraGuest(gestoreUtenti);
                     break;
-
                 case "X":
-                    // Il salvataggio dei file avviene esclusivamente qui all'atto di chiusura
-                    // massimizzando le prestazioni del software in RAM.
-                    System.out.println("\nSalvataggio dei database in corso...");
-                    gestoreUtenti.salvaSuFile();
-                    gestorePrenotazioni.salvaSuFile();
-                    // gestoreProiezioni.salvaSuFile();
-                    System.out.println("Tutti i dati sono al sicuro. Arrivederci!");
+                    System.out.println("Uscita dal programma in corso...");
                     break;
 
                 default:
@@ -85,6 +79,14 @@ public class Cinemax {
             }
 
         }while (!sel.equals("X") && !chiudi);
+
+        // Il salvataggio dei file avviene esclusivamente qui all'atto di chiusura
+        // massimizzando le prestazioni del software in RAM.
+        System.out.println("\nSalvataggio dei database in corso...");
+        gestoreUtenti.salvaSuFile();
+        gestorePrenotazioni.salvaSuFile();
+        gestoreProiezioni.salvaSuFile();
+        System.out.println("Tutti i dati sono al sicuro. Arrivederci!");
 
         sc.close();
     }

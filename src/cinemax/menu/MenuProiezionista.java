@@ -1,8 +1,8 @@
 package cinemax.menu;
 
 public class MenuProiezionista {
-    public static void menu(){
-
+    public static boolean menu(){
+        return true;
     }
 }
 

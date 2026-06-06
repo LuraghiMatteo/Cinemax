@@ -196,6 +196,8 @@ public class GestoreProiezioni {
      * @return lista di proiezioni valide
      */
     public List<Proiezione> cercaProiezione(String titolo, Genere genere, LocalDate dataInizio, LocalDate dataFine, double prezzoMin, double prezzoMax) {
+
+        // 1. Controlli di validità sui parametri
         if (dataInizio != null && dataFine != null && dataInizio.isAfter(dataFine)) {
             throw new DataNonValidaExeption("La data d'inizio è maggiore della data di fine: dataIn = " + dataInizio + ", dataFine = " + dataFine);
         }
@@ -205,35 +207,44 @@ public class GestoreProiezioni {
 
         List<Proiezione> proiezioni = new ArrayList<>();
 
+        // 2. Iterazione sul palinsesto
         for (Proiezione p : palinsesto) {
-            // Filtro titolo
+
+            // Filtro Titolo
             if (titolo != null && !titolo.trim().isEmpty()) {
-                if (!p.getFilm().getTitolo().toLowerCase().contains(titolo.toLowerCase())) {
+                if (!p.getFilm().getTitolo().toLowerCase().contains(titolo.trim().toLowerCase())) {
+                    continue; // Scarta se il titolo non contiene la stringa cercata
+                }
+            }
+
+            // Filtro Genere
+            if (genere != null) {
+                if (!p.getFilm().getGenere().equals(genere)) {
+                    continue; // Scarta se il genere è diverso
+                }
+            }
+
+            // Filtro Date
+            if (dataInizio != null && dataFine != null) {
+                LocalDate dataP = p.getDataOra().toLocalDate();
+                // Scarta se la data è strettamente precedente all'inizio o strettamente successiva alla fine
+                if (dataP.isBefore(dataInizio) || dataP.isAfter(dataFine)) {
                     continue;
                 }
             }
-            // Filtro genere
-            if (genere != null && !p.getFilm().getGenere().equals(genere)) {
-                continue;
-            }
-            // Filtro date
-            if (dataInizio != null && dataFine != null) {
-                if (p.getDataOra().toLocalDate().isAfter(dataInizio.minusDays(1)) && p.getDataOra().toLocalDate().isBefore(dataFine.plusDays(1))) {
-                    proiezioni.add(p);
-                }else if (dataInizio.isEqual(dataFine)) {
-                    if (p.getDataOra().toLocalDate().isEqual(dataInizio)) {
-                        proiezioni.add(p);
-                    }
-                }
-            }
-            // Filtro prezzo
+
+            // Filtro Prezzo
             if (prezzoMin >= 0 && prezzoMax >= 0) {
                 if (p.getCostoBiglietto() < prezzoMin || p.getCostoBiglietto() > prezzoMax) {
-                    continue;
+                    continue; // Scarta se il costo è fuori dal range stabilito
                 }
             }
+
+            // 3. Aggiunta alla lista
+            // Se il ciclo arriva a questa riga, significa che la proiezione ha superato tutti i filtri!
             proiezioni.add(p);
         }
+
         return proiezioni;
     }
 
@@ -264,9 +275,9 @@ public class GestoreProiezioni {
      * @param proiezioni
      * @param index
      */
-    public void visualizzaProiezioni(List<Proiezione> proiezioni, int index){
+    public static void visualizzaProiezioni(List<Proiezione> proiezioni, int index){
         for (int i = index; i < proiezioni.toArray().length && i < index+25; i++) {
-            System.out.println(proiezioni.get(i));
+            System.out.println("[" + i  + "]" + proiezioni.get(i));
         }
     }
 

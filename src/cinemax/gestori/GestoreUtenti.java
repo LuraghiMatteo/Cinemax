@@ -18,7 +18,7 @@ import java.util.List;
 public class GestoreUtenti {
 
     private List<Utente> utentiRegistrati;
-    private final String FILE_PATH = "data/utenti.csv";
+    private final String FILE_PATH = "data" + File.separator + "utenti.csv";
 
     /**
      * Inizializza il gestore istanziando la lista vuota in memoria RAM.
@@ -233,6 +233,8 @@ public class GestoreUtenti {
                         u.getLuogoDomicilio()
                 ));
             }
+
+            fOut.close();
         } catch (IOException e) {
             System.out.println("Errore durante il salvataggio del file utenti: " + e.getMessage());
         }
