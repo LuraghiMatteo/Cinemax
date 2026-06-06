@@ -15,9 +15,15 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Gestisce l'interfaccia utente testuale per gli utenti non autenticati (Guest).
- * Permette la registrazione di nuovi clienti e la ricerca di proiezioni cinematografiche
- * attraverso diversi filtri (titolo, genere, prezzo, data).
+ * Gestisce l'interfaccia utente testuale (TUI) per gli utenti non autenticati
+ * (Guest).
+ * Consente la registrazione di nuovi clienti e la ricerca interattiva delle
+ * proiezioni
+ * cinematografiche filtrando per titolo, genere, prezzo, data o combinando più
+ * filtri.
+ *
+ * Tutte le interazioni dell'utente sono validate per garantire un corretto
+ * inserimento dei dati.
  *
  * @author Matteo Luraghi - Matr: 765632 - Sede: VA
  * @author Fabio Maffiolini - Matr: 765567 - Sede: VA
@@ -25,241 +31,314 @@ import java.util.Scanner;
 public class MenuGuest {
 
     /**
-     * Visualizza il menu principale per l'utente Guest e gestisce la navigazione tra le sotto-funzioni.
+     * Visualizza il menu principale per l'utente Guest e gestisce la navigazione
+     * interattiva.
+     * Rimane attivo in un ciclo finché l'utente non seleziona l'opzione di uscita
+     * (X).
      *
-     * @param gestoreUtenti
-     * @param gestoreProiezioni
-     * @return true se l'operazione è completata correttamente.
+     * @param gestoreUtenti     il gestore per la registrazione dei clienti
+     * @param gestoreProiezioni il gestore per la ricerca delle proiezioni
+     * @return true al termine dell'esecuzione (uscita effettuata)
      */
     public static boolean menu(GestoreUtenti gestoreUtenti, GestoreProiezioni gestoreProiezioni) {
         Scanner sc = new Scanner(System.in);
         String sel;
         boolean chiudi = false;
+
         do {
-            System.out.println("Benvenuto nel menu Guest");
+            System.out.println("\nBenvenuto nel menu Guest");
             System.out.println("[0] Registrati");
             System.out.println("[1] Ricerca proiezione per titolo o sotto-stringa del titolo");
             System.out.println("[2] Ricerca proiezione per genere");
             System.out.println("[3] Ricerca proiezione per prezzo");
             System.out.println("[4] Ricerca proiezione per data");
             System.out.println("[5] Ricerca proiezione mix");
-            System.out.println("[X] esci");
+            System.out.println("[X] Esci");
+            System.out.print("Scegli un'opzione: ");
             sel = sc.nextLine();
 
-            switch (sel) {
+            switch (sel.toUpperCase()) {
                 case "0":
                     System.out.println("Inserimento dati per la registrazione");
                     registraGuest(gestoreUtenti);
                     break;
-                case "1": //titolo
-                    do {
-                        System.out.print("Inserisci il titolo del film: ");
-                        String titolo = sc.nextLine();
-                        if (titolo.isBlank()) {
-                            System.err.println("Il titolo non può essere vuoto");
-                        } else {
-                            MenuGuest.cercaTitolo(titolo, gestoreProiezioni);
-                            sel = "esci";
-                        }
-                    } while (!sel.equals("esci"));
+                case "1":
+                    ricercaPerTitolo(gestoreProiezioni);
                     break;
-                case "2": //genere
-                    do {
-                        for (Genere g : Genere.values()) {
-                            System.out.print(g + " ");
-                        }
-                        System.out.print("\nInserisci il genere del film tra questi: ");
-                        String genere = sc.nextLine().toUpperCase().trim();
-                        if (genere.isBlank()) {
-                            System.err.println("Il genere non può essere vuoto");
-                        } else {
-                            try {
-                                Genere g =  Genere.valueOf(genere.toUpperCase());
-                                MenuGuest.cercaGenere(g, gestoreProiezioni);
-                                sel = "esci";
-                            }catch(IllegalArgumentException e) {
-                                System.err.println("Il genere inserito non esiste. Riprova");
-                            }
-                        }
-                    } while (!sel.equals("esci"));
+                case "2":
+                    ricercaPerGenere(gestoreProiezioni);
                     break;
-                case "3"://prezzo
-                    do {
-                        System.out.println("[1] prezzo preciso");
-                        System.out.println("[2] range prezzo");
-                        System.out.print("Scaegli cosa vuoi fare: ");
-                        sel = sc.nextLine();
-                        switch (sel) {
-                            case "1":
-                                System.out.print("Inserisci il prezzo del biglietto: ");
-                                double prezzo = Double.parseDouble(sc.next().replace(',', '.'));
-                                if (prezzo <= 0)
-                                    System.err.println("Il prezzo deve essere maggiore di 0");
-                                else {
-                                    cercaPrezzo(prezzo, prezzo, gestoreProiezioni);
-                                    sel = "esci";
-                                }
-                                break;
-                            case "2":
-                                try{
-                                    double min, max;
-                                    System.out.print("Inserisci il prezzo minimo: ");
-                                    min = Double.parseDouble(sc.next().replace(',', '.'));
-                                    System.out.print("Inserisci il prezzo massimo: ");
-                                    max = Double.parseDouble(sc.next().replace(',', '.'));
-                                    if (min >= 0 && max >= min)
-                                        System.err.println("Il prezzo deve essere maggiore di 0 e il prezzo minimo deve essere minore del prezzo massimo");
-                                    else {
-                                        cercaPrezzo(min, max, gestoreProiezioni);
-                                        sel = "esci";
-                                    }
-                                }catch (CostoNonValidoExeption e){
-                                    System.err.println(e.getMessage());
-                                }
-                                break;
-                            default:
-                                System.err.println("opzione non valida. Riprova");
-                        }
-                    } while (!sel.equals("esci"));
+                case "3":
+                    ricercaPerPrezzo(gestoreProiezioni);
                     break;
-                case "4"://data
-                    do {
-                        System.out.println("[1] data precisa");
-                        System.out.println("[2] range data");
-                        System.out.print("Scaegli cosa vuoi fare: ");
-                        sel = sc.nextLine();
-                        switch (sel) {
-                            case "1":
-                                System.out.print("Inserisci la data (formato AAAA-MM-DD, es. 2026-05-24): ");
-                                String dataString = sc.nextLine().trim();
-                                LocalDate data;
-                                try {
-                                    data = LocalDate.parse(dataString);
-                                    cercaData(data, data, gestoreProiezioni);
-                                    sel = "esci";
-
-                                } catch (DateTimeParseException e) {
-                                    System.out.println("Errore: Formato data non valido. Utilizzare rigorosamente il pattern AAAA-MM-DD.");
-                                }
-                                break;
-                            case "2":
-                                String dataIn, dataFin;
-                                System.out.print("Inserisci data inizio (formato AAAA-MM-DD, es. 2026-05-24): ");
-                                dataIn = sc.nextLine().trim();
-                                System.out.print("Inserisci data fine (formato AAAA-MM-DD, es. 2026-05-24): ");
-                                dataFin = sc.nextLine().trim();
-                                LocalDate data1, data2;
-                                try {
-                                    data1 = LocalDate.parse(dataIn);
-                                    data2 = LocalDate.parse(dataFin);
-                                    if (data1.isBefore(data2)) {
-                                        cercaData(data1, data2, gestoreProiezioni);
-                                        sel = "esci";
-                                    } else {
-                                        System.err.println("La data inizio deve essere minore della data di fine");
-                                    }
-                                } catch (DateTimeParseException e) {
-                                    System.out.println("Errore: Formato data non valido. Utilizzare rigorosamente il pattern AAAA-MM-DD.");
-                                }
-                            default:
-                                System.err.println("opzione non valida. Riprova");
-                        }
-                    } while (!sel.equals("esci"));
+                case "4":
+                    ricercaPerData(gestoreProiezioni);
                     break;
                 case "5":
-                    do {
-                        String titolo = null;
-                        Genere genere = null;
-                        LocalDate dataIn = null;
-                        LocalDate dataFin = null;
-                        double prezzoMin = -1;
-                        double prezzoMax = -1;
-
-                        System.out.print("Inserisci il titolo (vuoto per ignorare): ");
-                        String titoloInput = sc.nextLine().trim();
-                        if (!titoloInput.isEmpty()) {
-                            titolo = titoloInput;
-                        }
-
-                        for (Genere g : Genere.values()) {
-                            System.out.print(g + " ");
-                        }
-                        System.out.print("\nInserisci il genere (vuoto per ignorare): ");
-                        String genereInput = sc.nextLine().trim();
-                        if (!genereInput.isEmpty()) {
-                            try {
-                                genere = Genere.valueOf(genereInput.toUpperCase());
-                            } catch (IllegalArgumentException e) {
-                                System.err.println("Genere inesistente: " + genereInput);
-                                break;
-                            }
-                        }
-
-                        System.out.print("Inserisci data inizio (AAAA-MM-DD) o vuoto per ignorare: ");
-                        String dataInStr = sc.nextLine().trim();
-                        if (!dataInStr.isEmpty()) {
-                            System.out.print("Inserisci data fine (AAAA-MM-DD): ");
-                            String dataFinStr = sc.nextLine().trim();
-                            if (dataFinStr.isEmpty()) {
-                                System.err.println("La data di fine non può essere vuota se la data di inizio è presente.");
-                                break;
-                            }
-                            try {
-                                dataIn = LocalDate.parse(dataInStr);
-                                dataFin = LocalDate.parse(dataFinStr);
-                            } catch (DateTimeParseException e) {
-                                System.err.println("Formato data non valido. Usa AAAA-MM-DD.");
-                                break;
-                            }
-                        }
-
-                        System.out.print("Inserisci prezzo minimo (vuoto per ignorare): ");
-                        String prezzoMinStr = sc.nextLine().trim();
-                        if (!prezzoMinStr.isEmpty()) {
-                            System.out.print("Inserisci prezzo massimo: ");
-                            String prezzoMaxStr = sc.nextLine().trim();
-                            if (prezzoMaxStr.isEmpty()) {
-                                System.err.println("Il prezzo massimo non può essere vuoto se il minimo è presente.");
-                                break;
-                            }
-                            try {
-                                prezzoMin = Double.parseDouble(prezzoMinStr);
-                                prezzoMax = Double.parseDouble(prezzoMaxStr);
-                            } catch (NumberFormatException e) {
-                                System.err.println("Prezzo non valido. Inserisci un numero.");
-                                break;
-                            }
-                        }
-
-                        try {
-                            cercaMix(titolo, genere, dataIn, dataFin, prezzoMin, prezzoMax, gestoreProiezioni);
-                            sel = "esci";
-                        } catch (RuntimeException e) {
-                            System.err.println("Errore nella ricerca mix: " + e.getMessage());
-                        }
-                    } while (!sel.equals("esci"));
+                    ricercaMixInterattiva(gestoreProiezioni);
                     break;
-                case "x":
                 case "X":
                     chiudi = true;
                     break;
                 default:
-                    System.err.println("opzione non valida. Riprova");
-
+                    System.err.println("Opzione non valida. Riprova");
             }
-
         } while (!chiudi);
 
         return true;
     }
 
     /**
-     * Gestisce la procedura di registrazione guidata per un nuovo cliente.
-     * Richiede l'inserimento di dati anagrafici e credenziali attraverso lo standard input.
+     * Gestisce l'interazione per la ricerca di una proiezione tramite il titolo del
+     * film.
+     * Richiede un titolo non vuoto e avvia la ricerca.
      *
-     * @param gestoreUtenti
+     * @param gestoreProiezioni il gestore per effettuare la ricerca
      */
-    public static void registraGuest(GestoreUtenti gestoreUtenti) {//FIXME la data deve essere facoltativa ma se non inserita da errore
+    private static void ricercaPerTitolo(GestoreProiezioni gestoreProiezioni) {
+        Scanner sc = new Scanner(System.in);
+        String sel = "";
+        do {
+            System.out.print("Inserisci il titolo del film: ");
+            String titolo = sc.nextLine();
+            if (titolo.isBlank()) {
+                System.err.println("Il titolo non può essere vuoto");
+            } else {
+                MenuGuest.cercaTitolo(titolo, gestoreProiezioni);
+                sel = "esci";
+            }
+        } while (!sel.equals("esci"));
+    }
+
+    /**
+     * Gestisce l'interazione per la ricerca di una proiezione per genere
+     * cinematografico.
+     * Mostra l'elenco dei generi disponibili e valida la scelta dell'utente.
+     *
+     * @param gestoreProiezioni il gestore per effettuare la ricerca
+     */
+    private static void ricercaPerGenere(GestoreProiezioni gestoreProiezioni) {
+        Scanner sc = new Scanner(System.in);
+        String sel = "";
+        do {
+            for (Genere g : Genere.values()) {
+                System.out.print(g + " ");
+            }
+            System.out.print("\nInserisci il genere del film tra questi: ");
+            String genere = sc.nextLine().toUpperCase().trim();
+            if (genere.isBlank()) {
+                System.err.println("Il genere non può essere vuoto");
+            } else {
+                try {
+                    Genere g = Genere.valueOf(genere);
+                    MenuGuest.cercaGenere(g, gestoreProiezioni);
+                    sel = "esci";
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Il genere inserito non esiste. Riprova");
+                }
+            }
+        } while (!sel.equals("esci"));
+    }
+
+    /**
+     * Gestisce l'interazione per la ricerca di proiezioni tramite prezzo specifico
+     * o range di prezzo.
+     * Valida i valori numerici inseriti per prevenire inserimenti non validi.
+     *
+     * @param gestoreProiezioni il gestore per effettuare la ricerca
+     */
+    private static void ricercaPerPrezzo(GestoreProiezioni gestoreProiezioni) {
+        Scanner sc = new Scanner(System.in);
+        String sel = "";
+        do {
+            System.out.println("[1] Prezzo preciso");
+            System.out.println("[2] Range prezzo");
+            System.out.print("Scegli cosa vuoi fare: ");
+            sel = sc.nextLine();
+            switch (sel) {
+                case "1":
+                    System.out.print("Inserisci il prezzo del biglietto: ");
+                    try {
+                        double prezzo = Double.parseDouble(sc.next().replace(',', '.'));
+                        if (prezzo <= 0) {
+                            System.err.println("Il prezzo deve essere maggiore di 0");
+                        } else {
+                            cercaPrezzo(prezzo, prezzo, gestoreProiezioni);
+                            sel = "esci";
+                        }
+                    } catch (NumberFormatException e) {
+                        System.err.println("Formato non valido.");
+                    }
+                    break;
+                case "2":
+                    try {
+                        double min, max;
+                        System.out.print("Inserisci il prezzo minimo: ");
+                        min = Double.parseDouble(sc.next().replace(',', '.'));
+                        System.out.print("Inserisci il prezzo massimo: ");
+                        max = Double.parseDouble(sc.next().replace(',', '.'));
+                        if (min < 0 || min > max) {
+                            System.err.println("Il prezzo minimo deve essere >= 0 e minore o uguale al prezzo massimo");
+                        } else {
+                            cercaPrezzo(min, max, gestoreProiezioni);
+                            sel = "esci";
+                        }
+                    } catch (NumberFormatException e) {
+                        System.err.println("Formato non valido.");
+                    } catch (CostoNonValidoExeption e) {
+                        System.err.println(e.getMessage());
+                    }
+                    break;
+                default:
+                    System.err.println("Opzione non valida. Riprova");
+            }
+        } while (!sel.equals("esci"));
+    }
+
+    /**
+     * Gestisce l'interazione per la ricerca di proiezioni tramite data specifica o
+     * range temporale.
+     * Valida le date inserite nel formato corretto AAAA-MM-DD.
+     *
+     * @param gestoreProiezioni il gestore per effettuare la ricerca
+     */
+    private static void ricercaPerData(GestoreProiezioni gestoreProiezioni) {
+        Scanner sc = new Scanner(System.in);
+        String sel = "";
+        do {
+            System.out.println("[1] Data precisa");
+            System.out.println("[2] Range data");
+            System.out.print("Scegli cosa vuoi fare: ");
+            sel = sc.nextLine();
+            switch (sel) {
+                case "1":
+                    System.out.print("Inserisci la data (formato AAAA-MM-DD, es. 2026-05-24): ");
+                    String dataString = sc.nextLine().trim();
+                    try {
+                        LocalDate data = LocalDate.parse(dataString);
+                        cercaData(data, data, gestoreProiezioni);
+                        sel = "esci";
+                    } catch (DateTimeParseException e) {
+                        System.out.println(
+                                "Errore: Formato data non valido. Utilizzare rigorosamente il pattern AAAA-MM-DD.");
+                    }
+                    break;
+                case "2":
+                    System.out.print("Inserisci data inizio (formato AAAA-MM-DD, es. 2026-05-24): ");
+                    String dataIn = sc.nextLine().trim();
+                    System.out.print("Inserisci data fine (formato AAAA-MM-DD, es. 2026-05-24): ");
+                    String dataFin = sc.nextLine().trim();
+                    try {
+                        LocalDate data1 = LocalDate.parse(dataIn);
+                        LocalDate data2 = LocalDate.parse(dataFin);
+                        if (!data1.isAfter(data2)) {
+                            cercaData(data1, data2, gestoreProiezioni);
+                            sel = "esci";
+                        } else {
+                            System.err.println("La data inizio deve essere minore o uguale della data di fine");
+                        }
+                    } catch (DateTimeParseException e) {
+                        System.out.println(
+                                "Errore: Formato data non valido. Utilizzare rigorosamente il pattern AAAA-MM-DD.");
+                    }
+                    break;
+                default:
+                    System.err.println("Opzione non valida. Riprova");
+            }
+        } while (!sel.equals("esci"));
+    }
+
+    /**
+     * Gestisce la ricerca avanzata combinando diversi filtri inseriti dall'utente.
+     * Consente di specificare titolo, genere, date e prezzi in modo facoltativo.
+     *
+     * @param gestoreProiezioni il gestore per effettuare la ricerca avanzata
+     */
+    private static void ricercaMixInterattiva(GestoreProiezioni gestoreProiezioni) {
+        Scanner sc = new Scanner(System.in);
+        String sel = "";
+        do {
+            String titolo = null;
+            Genere genere = null;
+            LocalDate dataIn = null;
+            LocalDate dataFin = null;
+            double prezzoMin = -1;
+            double prezzoMax = -1;
+
+            System.out.print("Inserisci il titolo (vuoto per ignorare): ");
+            String titoloInput = sc.nextLine().trim();
+            if (!titoloInput.isEmpty()) {
+                titolo = titoloInput;
+            }
+
+            for (Genere g : Genere.values()) {
+                System.out.print(g + " ");
+            }
+            System.out.print("\nInserisci il genere (vuoto per ignorare): ");
+            String genereInput = sc.nextLine().trim();
+            if (!genereInput.isEmpty()) {
+                try {
+                    genere = Genere.valueOf(genereInput.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Genere inesistente: " + genereInput);
+                    return;
+                }
+            }
+
+            System.out.print("Inserisci data inizio (AAAA-MM-DD) o vuoto per ignorare: ");
+            String dataInStr = sc.nextLine().trim();
+            if (!dataInStr.isEmpty()) {
+                System.out.print("Inserisci data fine (AAAA-MM-DD): ");
+                String dataFinStr = sc.nextLine().trim();
+                if (dataFinStr.isEmpty()) {
+                    System.err.println("La data di fine non può essere vuota se la data di inizio è presente.");
+                    return;
+                }
+                try {
+                    dataIn = LocalDate.parse(dataInStr);
+                    dataFin = LocalDate.parse(dataFinStr);
+                } catch (DateTimeParseException e) {
+                    System.err.println("Formato data non valido. Usa AAAA-MM-DD.");
+                    return;
+                }
+            }
+
+            System.out.print("Inserisci prezzo minimo (vuoto per ignorare): ");
+            String prezzoMinStr = sc.nextLine().trim();
+            if (!prezzoMinStr.isEmpty()) {
+                System.out.print("Inserisci prezzo massimo: ");
+                String prezzoMaxStr = sc.nextLine().trim();
+                if (prezzoMaxStr.isEmpty()) {
+                    System.err.println("Il prezzo massimo non può essere vuoto se il minimo è presente.");
+                    return;
+                }
+                try {
+                    prezzoMin = Double.parseDouble(prezzoMinStr.replace(',', '.'));
+                    prezzoMax = Double.parseDouble(prezzoMaxStr.replace(',', '.'));
+                } catch (NumberFormatException e) {
+                    System.err.println("Prezzo non valido. Inserisci un numero.");
+                    return;
+                }
+            }
+
+            try {
+                cercaMix(titolo, genere, dataIn, dataFin, prezzoMin, prezzoMax, gestoreProiezioni);
+                sel = "esci";
+            } catch (RuntimeException e) {
+                System.err.println("Errore nella ricerca mix: " + e.getMessage());
+            }
+        } while (!sel.equals("esci"));
+    }
+
+    /**
+     * Gestisce la procedura guidata di registrazione per un nuovo utente Guest
+     * (Cliente).
+     * Richiede i dati anagrafici e le credenziali, validando l'input dell'utente.
+     *
+     * @param gestoreUtenti il gestore da utilizzare per registrare il nuovo utente
+     */
+    public static void registraGuest(GestoreUtenti gestoreUtenti) {// FIXME la data deve essere facoltativa ma se non
+                                                                   // inserita da errore
         Scanner sc = new Scanner(System.in);
         String nome, cognome, username, password, luogoDomicilio;
         LocalDate dataNascita = null;
@@ -281,14 +360,14 @@ public class MenuGuest {
             System.out.println("Inserisci il luogo domicilio: ");
             luogoDomicilio = sc.nextLine().trim();
 
-            if (nome.isEmpty() || cognome.isEmpty() || username.isEmpty() || password.isEmpty() || luogoDomicilio.isEmpty()) {
+            if (nome.isEmpty() || cognome.isEmpty() || username.isEmpty() || password.isEmpty()
+                    || luogoDomicilio.isEmpty()) {
                 System.out.println("Errore: Tutti i campi testuali sono obbligatori. Ricomincia la compilazione.");
                 continue;
             }
 
-            // Data Nascita
             System.out.println("Inserisci la data di nascita (formato AAAA-MM-DD, es. 1995-05-24)");
-            System.out.print("Campo facoltativo, se non vui inserirlo premi invio: ");
+            System.out.print("Campo facoltativo, se non vuoi inserirlo premi invio: ");
             String dataString = sc.nextLine().trim();
             try {
                 dataNascita = LocalDate.parse(dataString);
@@ -306,11 +385,13 @@ public class MenuGuest {
         } while (!datiValidi);
 
         // Creo Cliente
-        Cliente nuovoCliente = new Cliente(nome, cognome, username, password, dataNascita, Ruolo.CLIENTE, luogoDomicilio);
+        Cliente nuovoCliente = new Cliente(nome, cognome, username, password, dataNascita, Ruolo.CLIENTE,
+                luogoDomicilio);
 
         try {
             gestoreUtenti.registraCliente(nuovoCliente);
-            System.out.println("\n[Successo] Registrazione completata! Ora puoi effettuare il login con lo username: " + username);
+            System.out.println(
+                    "\n[Successo] Registrazione completata! Ora puoi effettuare il login con lo username: " + username);
 
         } catch (UtenteUsernameException e) {
             System.out.println("\n[Registrazione Fallita]: " + e.getMessage());
@@ -322,10 +403,12 @@ public class MenuGuest {
     }
 
     /**
-     * Esegue una ricerca delle proiezioni per titolo o sotto-stringa del titolo.
+     * Effettua la ricerca delle proiezioni per titolo o sottostringa del titolo e
+     * le mostra.
+     * Mostra i risultati con impaginazione di 25 elementi alla volta.
      *
-     * @param titolo
-     * @param gestoreProiezioni
+     * @param titolo            il titolo o parte del titolo del film da cercare
+     * @param gestoreProiezioni il gestore delle proiezioni
      */
     public static void cercaTitolo(String titolo, GestoreProiezioni gestoreProiezioni) {
         Scanner sc = new Scanner(System.in);
@@ -347,10 +430,11 @@ public class MenuGuest {
     }
 
     /**
-     * Esegue una ricerca delle proiezioni in base al genere cinematografico.
+     * Effettua la ricerca delle proiezioni per genere cinematografico e le mostra.
+     * Mostra i risultati con impaginazione di 25 elementi alla volta.
      *
-     * @param genere
-     * @param gestoreProiezioni
+     * @param genere            il genere cinematografico da cercare
+     * @param gestoreProiezioni il gestore delle proiezioni
      */
     public static void cercaGenere(Genere genere, GestoreProiezioni gestoreProiezioni) {
         Scanner sc = new Scanner(System.in);
@@ -373,11 +457,13 @@ public class MenuGuest {
     }
 
     /**
-     * Esegue una ricerca delle proiezioni in base a un prezzo specifico o a un intervallo di prezzo.
+     * Effettua la ricerca delle proiezioni filtrando per prezzo esatto o range di
+     * prezzo e le mostra.
+     * Mostra i risultati con impaginazione di 25 elementi alla volta.
      *
-     * @param min
-     * @param max
-     * @param gestoreProiezioni
+     * @param min               il prezzo minimo (o esatto)
+     * @param max               il prezzo massimo (o esatto)
+     * @param gestoreProiezioni il gestore delle proiezioni
      */
     public static void cercaPrezzo(double min, double max, GestoreProiezioni gestoreProiezioni) {
         Scanner sc = new Scanner(System.in);
@@ -403,11 +489,13 @@ public class MenuGuest {
     }
 
     /**
-     * Esegue una ricerca delle proiezioni in base a una data specifica o a un intervallo temporale.
+     * Effettua la ricerca delle proiezioni filtrando per data esatta o range
+     * temporale e le mostra.
+     * Mostra i risultati con impaginazione di 25 elementi alla volta.
      *
-     * @param dataIn
-     * @param dataFin
-     * @param gestoreProiezioni
+     * @param dataIn            la data di inizio (o data precisa)
+     * @param dataFin           la data di fine (o data precisa)
+     * @param gestoreProiezioni il gestore delle proiezioni
      */
     public static void cercaData(LocalDate dataIn, LocalDate dataFin, GestoreProiezioni gestoreProiezioni) {
         Scanner sc = new Scanner(System.in);
@@ -431,20 +519,25 @@ public class MenuGuest {
     }
 
     /**
-     * Esegue una ricerca avanzata combinando diversi filtri (titolo, genere, data e prezzo).
-     * Se un filtro è null o non impostato, non viene applicato alla ricerca.
+     * Esegue una ricerca avanzata nel sistema applicando contemporaneamente i
+     * filtri compilati.
+     * Mostra i risultati con impaginazione di 25 elementi alla volta.
      *
-     * @param titolo
-     * @param genere
-     * @param dataIn
-     * @param dataFin
-     * @param prezzoMin
-     * @param prezzoMax
-     * @param gestoreProiezioni
+     * @param titolo            il titolo o parte del titolo da filtrare (null se
+     *                          ignorato)
+     * @param genere            il genere cinematografico da filtrare (null se
+     *                          ignorato)
+     * @param dataIn            la data di inizio da filtrare (null se ignorato)
+     * @param dataFin           la data di fine da filtrare (null se ignorato)
+     * @param prezzoMin         il prezzo minimo da filtrare (-1 se ignorato)
+     * @param prezzoMax         il prezzo massimo da filtrare (-1 se ignorato)
+     * @param gestoreProiezioni il gestore delle proiezioni
      */
-    public static void cercaMix(String titolo, Genere genere, LocalDate dataIn, LocalDate dataFin, double prezzoMin, double prezzoMax, GestoreProiezioni gestoreProiezioni) {
+    public static void cercaMix(String titolo, Genere genere, LocalDate dataIn, LocalDate dataFin, double prezzoMin,
+            double prezzoMax, GestoreProiezioni gestoreProiezioni) {
         Scanner sc = new Scanner(System.in);
-        List<Proiezione> valide = gestoreProiezioni.cercaProiezione(titolo, genere, dataIn, dataFin, prezzoMin, prezzoMax);
+        List<Proiezione> valide = gestoreProiezioni.cercaProiezione(titolo, genere, dataIn, dataFin, prezzoMin,
+                prezzoMax);
         if (!valide.isEmpty()) {
             int index = 0;
             do {
@@ -461,4 +554,3 @@ public class MenuGuest {
         }
     }
 }
-
