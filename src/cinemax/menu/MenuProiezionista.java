@@ -224,17 +224,17 @@ public class MenuProiezionista {
     private static Proiezione selezionaProiezione(GestoreProiezioni gestoreProiezioni) {
         Scanner sc = new Scanner(System.in);
         String titolo;
-        List<Proiezione> valide = null;
+        List<Proiezione> valide;
         
         do {
             System.out.print("Inserisci il titolo del film della proiezione da cercare: ");
             titolo = sc.nextLine().trim();
             
             valide = gestoreProiezioni.cercaProiezione(titolo);
-            if (valide == null || valide.isEmpty()) {
+            if (valide.isEmpty()) {
                 System.err.println("Nessuna proiezione trovata con questo titolo. Riprova.");
             }
-        } while (valide == null || valide.isEmpty());
+        } while (valide.isEmpty());
         
         int pageIndex = 0;
         do {
