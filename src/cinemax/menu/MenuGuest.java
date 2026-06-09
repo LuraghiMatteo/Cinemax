@@ -30,17 +30,27 @@ import java.util.Scanner;
  */
 public class MenuGuest {
 
+    private final GestoreUtenti gestoreUtenti;
+    private final GestoreProiezioni gestoreProiezioni;
+
     /**
-     * Visualizza il menu principale per l'utente Guest e gestisce la navigazione
-     * interattiva.
-     * Rimane attivo in un ciclo finché l'utente non seleziona l'opzione di uscita
-     * (X).
+     * Costruttore della classe MenuGuest.
      *
-     * @param gestoreUtenti     il gestore per la registrazione dei clienti
-     * @param gestoreProiezioni il gestore per la ricerca delle proiezioni
+     * @param gestoreUtenti      Il gestore per le operazioni sugli utenti.
+     * @param gestoreProiezioni  Il gestore per le ricerche sulle proiezioni.
+     */
+    public MenuGuest(GestoreUtenti gestoreUtenti, GestoreProiezioni gestoreProiezioni) {
+        this.gestoreUtenti = gestoreUtenti;
+        this.gestoreProiezioni = gestoreProiezioni;
+    }
+
+    /**
+     * Esegue il menu principale per l'utente Guest e gestisce la navigazione interattiva.
+     * Rimane attivo in un ciclo finché l'utente non seleziona l'opzione di uscita (X).
+     *
      * @return true al termine dell'esecuzione (uscita effettuata)
      */
-    public static boolean menu(GestoreUtenti gestoreUtenti, GestoreProiezioni gestoreProiezioni) {
+    public boolean esegui() {
         Scanner sc = new Scanner(System.in);
         String sel;
         boolean chiudi = false;
@@ -60,22 +70,22 @@ public class MenuGuest {
             switch (sel.toUpperCase()) {
                 case "0":
                     System.out.println("Inserimento dati per la registrazione");
-                    registraGuest(gestoreUtenti);
+                    registraUtente();
                     break;
                 case "1":
-                    ricercaPerTitolo(gestoreProiezioni);
+                    ricercaPerTitolo();
                     break;
                 case "2":
-                    ricercaPerGenere(gestoreProiezioni);
+                    ricercaPerGenere();
                     break;
                 case "3":
-                    ricercaPerPrezzo(gestoreProiezioni);
+                    ricercaPerPrezzo();
                     break;
                 case "4":
-                    ricercaPerData(gestoreProiezioni);
+                    ricercaPerData();
                     break;
                 case "5":
-                    ricercaMixInterattiva(gestoreProiezioni);
+                    ricercaMixInterattiva();
                     break;
                 case "X":
                     chiudi = true;
@@ -89,13 +99,80 @@ public class MenuGuest {
     }
 
     /**
-     * Gestisce l'interazione per la ricerca di una proiezione tramite il titolo del
-     * film.
-     * Richiede un titolo non vuoto e avvia la ricerca.
-     *
-     * @param gestoreProiezioni il gestore per effettuare la ricerca
+     * Gestisce la procedura guidata di registrazione per un nuovo utente Guest
+     * (Cliente).
+     * Richiede i dati anagrafici e le credenziali, validando l'input dell'utente.
      */
-    private static void ricercaPerTitolo(GestoreProiezioni gestoreProiezioni) {
+    public void registraUtente() {
+        Scanner sc = new Scanner(System.in);
+        String nome, cognome, username, password, luogoDomicilio;
+        LocalDate dataNascita = null;
+        boolean datiValidi = false;
+
+        do {
+            System.out.println("Inserisci il nome: ");
+            nome = sc.nextLine().trim();
+
+            System.out.println("Inserisci il cognome: ");
+            cognome = sc.nextLine().trim();
+
+            System.out.println("Inserisci lo username: ");
+            username = sc.nextLine().trim();
+
+            System.out.println("Inserisci la password: ");
+            password = sc.nextLine().trim();
+
+            System.out.println("Inserisci il luogo domicilio: ");
+            luogoDomicilio = sc.nextLine().trim();
+
+            if (nome.isEmpty() || cognome.isEmpty() || username.isEmpty() || password.isEmpty()
+                    || luogoDomicilio.isEmpty()) {
+                System.out.println("Errore: Tutti i campi testuali sono obbligatori. Ricomincia la compilazione.");
+                continue;
+            }
+
+            System.out.println("Inserisci la data di nascita (formato AAAA-MM-DD, es. 1995-05-24)");
+            System.out.print("Campo facoltativo, se non vuoi inserirlo premi invio: ");
+            String dataString = sc.nextLine().trim();
+            try {
+                if (!dataString.isEmpty()) {
+                    dataNascita = LocalDate.parse(dataString);
+
+                    if (dataNascita.isAfter(LocalDate.now())) {
+                        System.out.println("Errore: La data di nascita non può essere nel futuro.");
+                        continue;
+                    }
+                }
+                datiValidi = true;
+
+            } catch (DateTimeParseException e) {
+                System.out.println("Errore: Formato data non valido. Utilizzare rigorosamente il pattern AAAA-MM-DD.");
+            }
+        } while (!datiValidi);
+
+        // Creo Cliente
+        Cliente nuovoCliente = new Cliente(nome, cognome, username, password, dataNascita, Ruolo.CLIENTE,
+                luogoDomicilio);
+
+        try {
+            gestoreUtenti.registraCliente(nuovoCliente);
+            System.out.println(
+                    "\n[Successo] Registrazione completata! Ora puoi effettuare il login con lo username: " + username);
+
+        } catch (UtenteUsernameException e) {
+            System.out.println("\n[Registrazione Fallita]: " + e.getMessage());
+
+        } catch (Exception e) {
+            // Gestione di sicurezza per errori imprevisti generici
+            System.out.println("\n[Errore di Sistema]: Impossibile completare l'operazione. Riprova più tardi.");
+        }
+    }
+
+    /**
+     * Avvia l'interfaccia interattiva per la ricerca di proiezioni tramite titolo.
+     * Richiede l'inserimento di una stringa e chiama il metodo di ricerca.
+     */
+    private void ricercaPerTitolo() {
         Scanner sc = new Scanner(System.in);
         String sel = "";
         do {
@@ -104,20 +181,17 @@ public class MenuGuest {
             if (titolo.isBlank()) {
                 System.err.println("Il titolo non può essere vuoto");
             } else {
-                MenuGuest.cercaTitolo(titolo, gestoreProiezioni);
+                cercaTitolo(titolo);
                 sel = "esci";
             }
         } while (!sel.equals("esci"));
     }
 
     /**
-     * Gestisce l'interazione per la ricerca di una proiezione per genere
-     * cinematografico.
-     * Mostra l'elenco dei generi disponibili e valida la scelta dell'utente.
-     *
-     * @param gestoreProiezioni il gestore per effettuare la ricerca
+     * Avvia l'interfaccia interattiva per la ricerca di proiezioni tramite genere.
+     * Mostra l'elenco dei generi disponibili e richiede una scelta.
      */
-    private static void ricercaPerGenere(GestoreProiezioni gestoreProiezioni) {
+    private void ricercaPerGenere() {
         Scanner sc = new Scanner(System.in);
         String sel = "";
         do {
@@ -131,7 +205,7 @@ public class MenuGuest {
             } else {
                 try {
                     Genere g = Genere.valueOf(genere);
-                    MenuGuest.cercaGenere(g, gestoreProiezioni);
+                    cercaGenere(g);
                     sel = "esci";
                 } catch (IllegalArgumentException e) {
                     System.err.println("Il genere inserito non esiste. Riprova");
@@ -141,13 +215,10 @@ public class MenuGuest {
     }
 
     /**
-     * Gestisce l'interazione per la ricerca di proiezioni tramite prezzo specifico
-     * o range di prezzo.
-     * Valida i valori numerici inseriti per prevenire inserimenti non validi.
-     *
-     * @param gestoreProiezioni il gestore per effettuare la ricerca
+     * Avvia l'interfaccia interattiva per la ricerca di proiezioni tramite prezzo.
+     * Consente di cercare per prezzo esatto o per un intervallo di prezzi.
      */
-    private static void ricercaPerPrezzo(GestoreProiezioni gestoreProiezioni) {
+    private void ricercaPerPrezzo() {
         Scanner sc = new Scanner(System.in);
         String sel = "";
         do {
@@ -163,7 +234,7 @@ public class MenuGuest {
                         if (prezzo <= 0) {
                             System.err.println("Il prezzo deve essere maggiore di 0");
                         } else {
-                            cercaPrezzo(prezzo, prezzo, gestoreProiezioni);
+                            cercaPrezzo(prezzo, prezzo);
                             sel = "esci";
                         }
                     } catch (NumberFormatException e) {
@@ -180,7 +251,7 @@ public class MenuGuest {
                         if (min < 0 || min > max) {
                             System.err.println("Il prezzo minimo deve essere >= 0 e minore o uguale al prezzo massimo");
                         } else {
-                            cercaPrezzo(min, max, gestoreProiezioni);
+                            cercaPrezzo(min, max);
                             sel = "esci";
                         }
                     } catch (NumberFormatException e) {
@@ -196,13 +267,10 @@ public class MenuGuest {
     }
 
     /**
-     * Gestisce l'interazione per la ricerca di proiezioni tramite data specifica o
-     * range temporale.
-     * Valida le date inserite nel formato corretto AAAA-MM-DD.
-     *
-     * @param gestoreProiezioni il gestore per effettuare la ricerca
+     * Avvia l'interfaccia interattiva per la ricerca di proiezioni tramite data.
+     * Consente di cercare per data esatta o per un intervallo di date.
      */
-    private static void ricercaPerData(GestoreProiezioni gestoreProiezioni) {
+    private void ricercaPerData() {
         Scanner sc = new Scanner(System.in);
         String sel = "";
         do {
@@ -216,7 +284,7 @@ public class MenuGuest {
                     String dataString = sc.nextLine().trim();
                     try {
                         LocalDate data = LocalDate.parse(dataString);
-                        cercaData(data, data, gestoreProiezioni);
+                        cercaData(data, data);
                         sel = "esci";
                     } catch (DateTimeParseException e) {
                         System.out.println(
@@ -232,7 +300,7 @@ public class MenuGuest {
                         LocalDate data1 = LocalDate.parse(dataIn);
                         LocalDate data2 = LocalDate.parse(dataFin);
                         if (!data1.isAfter(data2)) {
-                            cercaData(data1, data2, gestoreProiezioni);
+                            cercaData(data1, data2);
                             sel = "esci";
                         } else {
                             System.err.println("La data inizio deve essere minore o uguale della data di fine");
@@ -249,12 +317,10 @@ public class MenuGuest {
     }
 
     /**
-     * Gestisce la ricerca avanzata combinando diversi filtri inseriti dall'utente.
-     * Consente di specificare titolo, genere, date e prezzi in modo facoltativo.
-     *
-     * @param gestoreProiezioni il gestore per effettuare la ricerca avanzata
+     * Avvia l'interfaccia interattiva per la ricerca combinata (mix) di proiezioni.
+     * Consente di filtrare contemporaneamente per titolo, genere, date e prezzi.
      */
-    private static void ricercaMixInterattiva(GestoreProiezioni gestoreProiezioni) {
+    private void ricercaMixInterattiva() {
         Scanner sc = new Scanner(System.in);
         String sel = "";
         do {
@@ -322,7 +388,7 @@ public class MenuGuest {
             }
 
             try {
-                cercaMix(titolo, genere, dataIn, dataFin, prezzoMin, prezzoMax, gestoreProiezioni);
+                cercaMix(titolo, genere, dataIn, dataFin, prezzoMin, prezzoMax);
                 sel = "esci";
             } catch (RuntimeException e) {
                 System.err.println("Errore nella ricerca mix: " + e.getMessage());
@@ -331,86 +397,11 @@ public class MenuGuest {
     }
 
     /**
-     * Gestisce la procedura guidata di registrazione per un nuovo utente Guest
-     * (Cliente).
-     * Richiede i dati anagrafici e le credenziali, validando l'input dell'utente.
+     * Effettua la ricerca delle proiezioni per titolo e ne gestisce la visualizzazione paginata.
      *
-     * @param gestoreUtenti il gestore da utilizzare per registrare il nuovo utente
+     * @param titolo Il titolo o parte del titolo del film da cercare.
      */
-    public static void registraGuest(GestoreUtenti gestoreUtenti) {// FIXME la data deve essere facoltativa ma se non
-                                                                   // inserita da errore
-        Scanner sc = new Scanner(System.in);
-        String nome, cognome, username, password, luogoDomicilio;
-        LocalDate dataNascita = null;
-        boolean datiValidi = false;
-
-        do {
-            System.out.println("Inserisci il nome: ");
-            nome = sc.nextLine().trim();
-
-            System.out.println("Inserisci il cognome: ");
-            cognome = sc.nextLine().trim();
-
-            System.out.println("Inserisci lo username: ");
-            username = sc.nextLine().trim();
-
-            System.out.println("Inserisci la password: ");
-            password = sc.nextLine().trim();
-
-            System.out.println("Inserisci il luogo domicilio: ");
-            luogoDomicilio = sc.nextLine().trim();
-
-            if (nome.isEmpty() || cognome.isEmpty() || username.isEmpty() || password.isEmpty()
-                    || luogoDomicilio.isEmpty()) {
-                System.out.println("Errore: Tutti i campi testuali sono obbligatori. Ricomincia la compilazione.");
-                continue;
-            }
-
-            System.out.println("Inserisci la data di nascita (formato AAAA-MM-DD, es. 1995-05-24)");
-            System.out.print("Campo facoltativo, se non vuoi inserirlo premi invio: ");
-            String dataString = sc.nextLine().trim();
-            try {
-                dataNascita = LocalDate.parse(dataString);
-
-                if (dataNascita.isAfter(LocalDate.now())) {
-                    System.out.println("Errore: La data di nascita non può essere nel futuro.");
-                    continue;
-                }
-
-                datiValidi = true;
-
-            } catch (DateTimeParseException e) {
-                System.out.println("Errore: Formato data non valido. Utilizzare rigorosamente il pattern AAAA-MM-DD.");
-            }
-        } while (!datiValidi);
-
-        // Creo Cliente
-        Cliente nuovoCliente = new Cliente(nome, cognome, username, password, dataNascita, Ruolo.CLIENTE,
-                luogoDomicilio);
-
-        try {
-            gestoreUtenti.registraCliente(nuovoCliente);
-            System.out.println(
-                    "\n[Successo] Registrazione completata! Ora puoi effettuare il login con lo username: " + username);
-
-        } catch (UtenteUsernameException e) {
-            System.out.println("\n[Registrazione Fallita]: " + e.getMessage());
-
-        } catch (Exception e) {
-            // Gestione di sicurezza per errori imprevisti generici
-            System.out.println("\n[Errore di Sistema]: Impossibile completare l'operazione. Riprova più tardi.");
-        }
-    }
-
-    /**
-     * Effettua la ricerca delle proiezioni per titolo o sottostringa del titolo e
-     * le mostra.
-     * Mostra i risultati con impaginazione di 25 elementi alla volta.
-     *
-     * @param titolo            il titolo o parte del titolo del film da cercare
-     * @param gestoreProiezioni il gestore delle proiezioni
-     */
-    public static void cercaTitolo(String titolo, GestoreProiezioni gestoreProiezioni) {
+    private void cercaTitolo(String titolo) {
         Scanner sc = new Scanner(System.in);
         List<Proiezione> valide = gestoreProiezioni.cercaProiezione(titolo);
         if (!valide.isEmpty()) {
@@ -418,25 +409,23 @@ public class MenuGuest {
             do {
                 gestoreProiezioni.visualizzaProiezioni(valide, index);
                 index += 25;
-                if (index < valide.toArray().length) {
-                    System.out.print("Proiezioni " + index + " su " + valide.toArray().length + ". ");
+                if (index < valide.size()) {
+                    System.out.print("Proiezioni " + index + " su " + valide.size() + ". ");
                     System.out.print("Premere invio per continuare");
                     sc.nextLine();
                 }
-            } while (index < valide.toArray().length);
+            } while (index < valide.size());
         } else {
             System.err.println("non ci sono proiezioni con questo titolo: " + titolo);
         }
     }
 
     /**
-     * Effettua la ricerca delle proiezioni per genere cinematografico e le mostra.
-     * Mostra i risultati con impaginazione di 25 elementi alla volta.
+     * Effettua la ricerca delle proiezioni per genere e ne gestisce la visualizzazione paginata.
      *
-     * @param genere            il genere cinematografico da cercare
-     * @param gestoreProiezioni il gestore delle proiezioni
+     * @param genere Il genere cinematografico da filtrare.
      */
-    public static void cercaGenere(Genere genere, GestoreProiezioni gestoreProiezioni) {
+    private void cercaGenere(Genere genere) {
         Scanner sc = new Scanner(System.in);
         List<Proiezione> valide = gestoreProiezioni.cercaProiezione(genere);
         if (!valide.isEmpty()) {
@@ -444,28 +433,24 @@ public class MenuGuest {
             do {
                 gestoreProiezioni.visualizzaProiezioni(valide, index);
                 index += 25;
-                if (index < valide.toArray().length) {
-                    System.out.print("Proiezioni " + index + " su " + valide.toArray().length + ". ");
+                if (index < valide.size()) {
+                    System.out.print("Proiezioni " + index + " su " + valide.size() + ". ");
                     System.out.print("Premere invio per continuare");
                     sc.nextLine();
                 }
-            } while (index < valide.toArray().length);
-
+            } while (index < valide.size());
         } else {
             System.err.println("non ci sono proiezioni con questo genere: " + genere);
         }
     }
 
     /**
-     * Effettua la ricerca delle proiezioni filtrando per prezzo esatto o range di
-     * prezzo e le mostra.
-     * Mostra i risultati con impaginazione di 25 elementi alla volta.
+     * Effettua la ricerca delle proiezioni per range di prezzo e ne gestisce la visualizzazione paginata.
      *
-     * @param min               il prezzo minimo (o esatto)
-     * @param max               il prezzo massimo (o esatto)
-     * @param gestoreProiezioni il gestore delle proiezioni
+     * @param min Prezzo minimo (inclusivo).
+     * @param max Prezzo massimo (inclusivo).
      */
-    public static void cercaPrezzo(double min, double max, GestoreProiezioni gestoreProiezioni) {
+    private void cercaPrezzo(double min, double max) {
         Scanner sc = new Scanner(System.in);
         List<Proiezione> valide = gestoreProiezioni.cercaProiezione(min, max);
         if (!valide.isEmpty()) {
@@ -473,12 +458,12 @@ public class MenuGuest {
             do {
                 gestoreProiezioni.visualizzaProiezioni(valide, index);
                 index += 25;
-                if (index < valide.toArray().length) {
-                    System.out.print("Proiezioni " + index + " su " + valide.toArray().length + ". ");
+                if (index < valide.size()) {
+                    System.out.print("Proiezioni " + index + " su " + valide.size() + ". ");
                     System.out.print("Premere invio per continuare");
                     sc.nextLine();
                 }
-            } while (index < valide.toArray().length);
+            } while (index < valide.size());
         } else {
             if (min == max) {
                 System.err.println("non ci sono proiezioni con questo prezzo: " + min);
@@ -489,15 +474,12 @@ public class MenuGuest {
     }
 
     /**
-     * Effettua la ricerca delle proiezioni filtrando per data esatta o range
-     * temporale e le mostra.
-     * Mostra i risultati con impaginazione di 25 elementi alla volta.
+     * Effettua la ricerca delle proiezioni per range di date e ne gestisce la visualizzazione paginata.
      *
-     * @param dataIn            la data di inizio (o data precisa)
-     * @param dataFin           la data di fine (o data precisa)
-     * @param gestoreProiezioni il gestore delle proiezioni
+     * @param dataIn Data di inizio (inclusiva).
+     * @param dataFin Data di fine (inclusiva).
      */
-    public static void cercaData(LocalDate dataIn, LocalDate dataFin, GestoreProiezioni gestoreProiezioni) {
+    private void cercaData(LocalDate dataIn, LocalDate dataFin) {
         Scanner sc = new Scanner(System.in);
         List<Proiezione> valide = gestoreProiezioni.cercaProiezione(dataIn, dataFin);
         if (!valide.isEmpty()) {
@@ -505,12 +487,12 @@ public class MenuGuest {
             do {
                 gestoreProiezioni.visualizzaProiezioni(valide, index);
                 index += 25;
-                if (index < valide.toArray().length) {
-                    System.out.print("Proiezioni " + index + " su " + valide.toArray().length + ". ");
+                if (index < valide.size()) {
+                    System.out.print("Proiezioni " + index + " su " + valide.size() + ". ");
                     System.out.print("Premere invio per continuare");
                     sc.nextLine();
                 }
-            } while (index < valide.toArray().length);
+            } while (index < valide.size());
         } else if (dataIn.isEqual(dataFin)) {
             System.err.println("Non ci sono proiezioni in questa data: " + dataIn);
         } else {
@@ -519,36 +501,29 @@ public class MenuGuest {
     }
 
     /**
-     * Esegue una ricerca avanzata nel sistema applicando contemporaneamente i
-     * filtri compilati.
-     * Mostra i risultati con impaginazione di 25 elementi alla volta.
+     * Effettua la ricerca multi-filtro delle proiezioni e ne gestisce la visualizzazione paginata.
      *
-     * @param titolo            il titolo o parte del titolo da filtrare (null se
-     *                          ignorato)
-     * @param genere            il genere cinematografico da filtrare (null se
-     *                          ignorato)
-     * @param dataIn            la data di inizio da filtrare (null se ignorato)
-     * @param dataFin           la data di fine da filtrare (null se ignorato)
-     * @param prezzoMin         il prezzo minimo da filtrare (-1 se ignorato)
-     * @param prezzoMax         il prezzo massimo da filtrare (-1 se ignorato)
-     * @param gestoreProiezioni il gestore delle proiezioni
+     * @param titolo    Titolo o parte del titolo (opzionale).
+     * @param genere    Genere cinematografico (opzionale).
+     * @param dataIn    Data inizio intervallo (opzionale).
+     * @param dataFin   Data fine intervallo (opzionale).
+     * @param prezzoMin Prezzo minimo (opzionale, -1 per ignorare).
+     * @param prezzoMax Prezzo massimo (opzionale, -1 per ignorare).
      */
-    public static void cercaMix(String titolo, Genere genere, LocalDate dataIn, LocalDate dataFin, double prezzoMin,
-            double prezzoMax, GestoreProiezioni gestoreProiezioni) {
+    private void cercaMix(String titolo, Genere genere, LocalDate dataIn, LocalDate dataFin, double prezzoMin, double prezzoMax) {
         Scanner sc = new Scanner(System.in);
-        List<Proiezione> valide = gestoreProiezioni.cercaProiezione(titolo, genere, dataIn, dataFin, prezzoMin,
-                prezzoMax);
+        List<Proiezione> valide = gestoreProiezioni.cercaProiezione(titolo, genere, dataIn, dataFin, prezzoMin, prezzoMax);
         if (!valide.isEmpty()) {
             int index = 0;
             do {
                 gestoreProiezioni.visualizzaProiezioni(valide, index);
                 index += 25;
-                if (index < valide.toArray().length) {
-                    System.out.print("Proiezioni " + index + " su " + valide.toArray().length + ". ");
+                if (index < valide.size()) {
+                    System.out.print("Proiezioni " + index + " su " + valide.size() + ". ");
                     System.out.print("Premere invio per continuare");
                     sc.nextLine();
                 }
-            } while (index < valide.toArray().length);
+            } while (index < valide.size());
         } else {
             System.err.println("Non ci sono proiezioni con i filtri selezionati.");
         }
