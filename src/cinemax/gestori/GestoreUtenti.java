@@ -7,8 +7,8 @@ import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Classe incaricata di gestire il ciclo di vita degli utenti (autenticazione,
@@ -17,18 +17,17 @@ import java.util.List;
  */
 public class GestoreUtenti {
 
-    private List<Utente> utentiRegistrati;
+    private Map<String, Utente> utentiRegistrati;
     private final String FILE_PATH = "data" + File.separator + "utenti.csv";
 
     /**
-     * Inizializza il gestore istanziando la lista vuota in memoria RAM.
+     * Inizializza il gestore istanziando la mappa vuota in memoria RAM.
      */
     public GestoreUtenti() {
-        this.utentiRegistrati = new ArrayList<>();
+        this.utentiRegistrati = new HashMap<>();
     }
 
     // METODI DI ACCESSO E LOGICA DI BUSINESS
-
     /**
      * Esegue l'autenticazione di un utente confrontando le credenziali inserite.
      * La password inserita in chiaro viene cifrata confrontata con l'hash salvato.
@@ -42,10 +41,9 @@ public class GestoreUtenti {
 
         if (passwordCifrata == null) return null;
 
-        for (Utente u : utentiRegistrati) {
-            if (u.getUsername().equalsIgnoreCase(username) && u.getPassword().equals(passwordCifrata)) {
-                return u; // Trovato e autenticato
-            }
+        Utente u = utentiRegistrati.get(username.toLowerCase());
+        if (u != null && u.getPassword().equals(passwordCifrata)) {
+            return u; // Trovato e autenticato
         }
         return null; // Credenziali errate
     }
@@ -77,7 +75,7 @@ public class GestoreUtenti {
                 nuovoCliente.getLuogoDomicilio()
         );
 
-        utentiRegistrati.add(clienteSicuro);
+        utentiRegistrati.put(clienteSicuro.getUsername().toLowerCase(), clienteSicuro);
     }
 
     /**
@@ -88,16 +86,10 @@ public class GestoreUtenti {
      * @return L'oggetto Utente corrispondente, oppure null se inesistente.
      */
     public Utente cercaUtentePerUsername(String username) {
-        for (Utente u : utentiRegistrati) {
-            if (u.getUsername().equalsIgnoreCase(username)) {
-                return u;
-            }
-        }
-        return null;
+        return utentiRegistrati.get(username.toLowerCase());
     }
 
     // METODI DI SUPPORTO SICUREZZA
-
     /**
      * Cifra una stringa in chiaro utilizzando l'algoritmo di hashing standard SHA-256.
      *
@@ -118,7 +110,6 @@ public class GestoreUtenti {
 
             // Itero su ciascuno dei 32 byte estratti
             for (byte b : hashBytes) {
-
                 // Formatto la stringa in esadecimale
                 sb.append(String.format("%02x", b));
             }
@@ -126,24 +117,22 @@ public class GestoreUtenti {
             return sb.toString();
 
         } catch (NoSuchAlgorithmException e) {
-            // Gestione dell'eccezione controllata: scatta solo nell'improbabile caso in cui
-            // l'ambiente Java di esecuzione non supporti l'algoritmo SHA-256.
+            // scatta solo nel caso in cui l'ambiente Java di esecuzione non supporti l'algoritmo SHA-256.
             System.out.println("Errore interno di sicurezza: Algoritmo di cifratura non trovato.");
             return null;
         }
     }
 
     // GESTIONE FILE
-
     /**
-     * Carica gli utenti memorizzati nel file utenti.csv ripristinando la lista in RAM.
+     * Carica gli utenti memorizzati nel file utenti.csv ripristinando HashMap in RAM.
      * Sfrutta il polimorfismo per istanziare la corretta sottoclasse (Cliente, Bigliettaio,
      * Proiezionista) in base al ruolo letto dal file di persistenza.
      * Crea automaticamente il file e le cartelle se non presenti all'avvio del software.
      */
     public void caricaDaFile() {
         File f = new File(FILE_PATH);
-        this.utentiRegistrati = new ArrayList<>();
+        this.utentiRegistrati = new HashMap<>();
 
         // Controllo e creazione della struttura delle cartelle e del file se assenti
         if (!f.exists()) {
@@ -158,7 +147,7 @@ public class GestoreUtenti {
                 // Altrimenti l'applicazione partirebbe senza utenti utilizzabili.
                 String passCifrataAdmin = cifraPassword("admin123");
                 Bigliettaio adminDefault = new Bigliettaio("Admin", "Cinema", "admin", passCifrataAdmin, null, Ruolo.BIGLIETTAIO, "Sede");
-                this.utentiRegistrati.add(adminDefault);
+                this.utentiRegistrati.put(adminDefault.getUsername().toLowerCase(), adminDefault);
 
                 // Salviamo subito il primo utente di backup
                 salvaSuFile();
@@ -192,13 +181,13 @@ public class GestoreUtenti {
                     // Istanziamo l'oggetto corretto
                     if (ruolo == Ruolo.CLIENTE) {
                         Cliente c = new Cliente(nome, cognome, username, passwordHash, dataNascita, ruolo, domicilio);
-                        utentiRegistrati.add(c);
+                        utentiRegistrati.put(username.toLowerCase(), c);
                     } else if (ruolo == Ruolo.BIGLIETTAIO) {
                         Bigliettaio b = new Bigliettaio(nome, cognome, username, passwordHash, dataNascita, ruolo, domicilio);
-                        utentiRegistrati.add(b);
+                        utentiRegistrati.put(username.toLowerCase(), b);
                     } else if (ruolo == Ruolo.PROIEZIONISTA) {
                         Proiezionista p = new Proiezionista(nome, cognome, username, passwordHash, dataNascita, ruolo, domicilio);
-                        utentiRegistrati.add(p);
+                        utentiRegistrati.put(username.toLowerCase(), p);
                     }
                 }
                 line = fIn.readLine();
@@ -209,7 +198,7 @@ public class GestoreUtenti {
     }
 
     /**
-     * Scrive l'intero parco utenti contenuti nella lista RAM all'interno del file CSV,
+     * Scrive l'intero parco utenti contenuti nella HashMap all'interno del file CSV,
      * sovrascrivendolo per aggiornare lo stato di persistenza.
      */
     public void salvaSuFile() {
@@ -218,11 +207,10 @@ public class GestoreUtenti {
             FileWriter w = new FileWriter(f, false);
             PrintWriter fOut = new PrintWriter(w);
 
-            for (Utente u : utentiRegistrati) {
+            for (Utente u : utentiRegistrati.values()) {
                 // Gestione del valore nullo della data di nascita per evitare crash
                 String dataStr = (u.getDataNascita() != null) ? u.getDataNascita().toString() : "N/D";
 
-                // Formato CSV
                 fOut.println(String.format("%s,%s,%s,%s,%s,%s,%s",
                         u.getNome(),
                         u.getCognome(),
