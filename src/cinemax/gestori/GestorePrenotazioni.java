@@ -12,8 +12,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
 
 /**
  * Questa classe rappresenta il gestore di tutte le prenotazioni fatte dagli utenti.
@@ -22,17 +23,21 @@ import java.util.Random;
 public class GestorePrenotazioni {
 
     // Attributi
-    private List<Prenotazione> prenotazioni;
+    /**
+     * Struttura dati per l'indicizzazione e l'archiviazione in RAM delle prenotazioni attive.
+     * Mappa ogni codice univoco alfanumerico (Key in formato String) al rispettivo oggetto modello (Value di tipo Prenotazione).
+     */
+    private Map<String, Prenotazione> prenotazioni;
     private int contatoreCodici = 1; // Contatore necessario per generare il codice univoco
     private static final int CAPIENZA_SALA = 200;
     private final String FILE_PATH = "data" + File.separator + "prenotazioni.csv";
 
     // Costruttore
     /**
-     * Costruttore della classe: Inizializza un ArrayList di Prenotazioni vuota
+     * Costruttore della classe: Inizializza una HashMap di Prenotazioni vuota
      */
     public GestorePrenotazioni() {
-        this.prenotazioni = new ArrayList<>();
+        this.prenotazioni = new HashMap<>();
     }
 
     // METODI DI SUPPORTO
@@ -48,7 +53,7 @@ public class GestorePrenotazioni {
         int numPostiOccupati = 0, numPostiLiberi = 0;
 
         // Scorro tutte le prenotazioni
-        for(Prenotazione p : prenotazioni){
+        for(Prenotazione p : prenotazioni.values()){
             if(p.getProiezione().equals(proiezione)){ // Verifico che la proiezione della prenotazione sia uguale a quella passata
                 numPostiOccupati += p.getNumeroPosti(); // Calcolo posti occupati
             }
@@ -78,12 +83,15 @@ public class GestorePrenotazioni {
     }
 
     /**
-     * Data una lista di proiezioni ne visualizza 25 da un index specifico
-     * @param prenotazioni
-     * @param index
+     * Gestisce la visualizzazione formattata ed impaginata a blocchi delle prenotazioni sulla console.
+     * Mostra un massimo di 25 elementi a partire dall'indice specificato, stampando l'indice reale di lista
+     * affiancato alla vista testuale della prenotazione, evitando il sovraccarico visivo del terminale.
+     *
+     * @param prenotazioni La lista completa di oggetti {@link Prenotazione} da scorrere e mostrare a video.
+     * @param index        L'indice numerico di partenza (offset) da cui avviare il rendering del blocco corrente.
      */
-    public static void visualizzaPrenotazioni(List<Prenotazione> prenotazioni, int index){
-        for (int i = index; i < prenotazioni.toArray().length && i < index+25; i++) {
+    public static void visualizzaPrenotazioni(List<Prenotazione> prenotazioni, int index) {
+        for (int i = index; i < prenotazioni.size() && i < index + 25; i++) {
             System.out.println("[" + i  + "]" + prenotazioni.get(i));
         }
     }
@@ -93,7 +101,7 @@ public class GestorePrenotazioni {
      * Crea una nuova prenotazione se i posti sono disponibili.
      * @param cliente Il cliente che prenota
      * @param proiezione La proiezione scelta
-     * @param numeroPosti Quanti posti vuole
+     * @param numeroPosti Quanti posti vuole prenotare il cliente
      * @return La prenotazione creata oppure null se fallisce
      */
     public Prenotazione creaPrenotazione(Cliente cliente, Proiezione proiezione, int numeroPosti) {
@@ -109,8 +117,8 @@ public class GestorePrenotazioni {
         String codice = generaCodiceUnivoco();
         Prenotazione nuova = new Prenotazione(codice, cliente, proiezione, numeroPosti);
 
-        // Aggiornamento lista
-        prenotazioni.add(nuova);
+        // Aggiornamento mappa
+        prenotazioni.put(codice, nuova);
 
         return nuova;
     }
@@ -124,7 +132,7 @@ public class GestorePrenotazioni {
     public List<Prenotazione> getPrenotazioniPerCliente(Cliente cliente) {
         List<Prenotazione> filtrate = new ArrayList<>();
 
-        for (Prenotazione p : prenotazioni) {
+        for (Prenotazione p : prenotazioni.values()) {
             // Verifico se la prenotazione appartiene al cliente passato sfruttando il metodo equals della classe Utente
             if (p.getCliente().equals(cliente)) {
                 filtrate.add(p);
@@ -144,22 +152,14 @@ public class GestorePrenotazioni {
      * @throws PrenotazioneException Se uno dei vincoli aziendali o temporali viene violato.
      */
     public void modificaPrenotazione(String codiceUnivoco, Proiezione nuovaProiezione) throws PrenotazioneException {
-        Prenotazione daModificare = null;
-
         // Cerco la prenotazione
-        for (Prenotazione p : prenotazioni) {
-            if (p.getCodiceUnivoco().equals(codiceUnivoco)) {
-                daModificare = p;
-                break;
-            }
-        }
+        Prenotazione daModificare = prenotazioni.get(codiceUnivoco.toUpperCase());
 
         // Se non la trovo, lancio l'eccezione
         if (daModificare == null) {
             throw new PrenotazioneException("La prenotazione con codice " + codiceUnivoco + " non esiste nel sistema.");
         }
 
-        // Recupero ora attuale
         LocalDateTime oraAttuale = LocalDateTime.now();
 
         // Controllo regole temporali descritte nelle specifiche
@@ -195,15 +195,8 @@ public class GestorePrenotazioni {
      * @throws PrenotazioneException Se la prenotazione non esiste o se lo spettacolo è già passato.
      */
     public void eliminaPrenotazione(String codiceUnivoco) throws PrenotazioneException {
-        Prenotazione daRimuovere = null;
-
-        // Scorro la lista per trovare l'oggetto
-        for (Prenotazione p : prenotazioni) {
-            if (p.getCodiceUnivoco().equals(codiceUnivoco)) {
-                daRimuovere = p;
-                break; // Fermiamo il ciclo per risparmiare tempo quando la troviamo
-            }
-        }
+        // Cerco la prenotazione
+        Prenotazione daRimuovere = prenotazioni.get(codiceUnivoco.toUpperCase());
 
         // Se non trovo la prenotazione, lancio l'eccezione
         if (daRimuovere == null) {
@@ -215,8 +208,8 @@ public class GestorePrenotazioni {
             throw new PrenotazioneException("Impossibile cancellare la prenotazione: lo spettacolo è già passato.");
         }
 
-        // Se passa i controlli, elimino la prenotazione dalla lista
-        prenotazioni.remove(daRimuovere);
+        // Se passa i controlli, elimino la prenotazione dalla mappa
+        prenotazioni.remove(codiceUnivoco.toUpperCase());
     }
 
     // METODI PER IL BIGLIETTAIO
@@ -230,7 +223,7 @@ public class GestorePrenotazioni {
         List<Prenotazione> prenotazioniOdierne = new ArrayList<>();
         LocalDate oggi = LocalDate.now();
 
-        for (Prenotazione p : prenotazioni) {
+        for (Prenotazione p : prenotazioni.values()) {
             // Controllo che la data corrisponda con oggi
             if (p.getProiezione().getDataOra().toLocalDate().equals(oggi)) {
                 prenotazioniOdierne.add(p);
@@ -248,12 +241,7 @@ public class GestorePrenotazioni {
      * @return La prenotazione trovata, oppure null se inesistente.
      */
     public Prenotazione cercaPrenotazionePerCodice(String codice) {
-        for (Prenotazione p : prenotazioni) {
-            if (p.getCodiceUnivoco().equalsIgnoreCase(codice)) {
-                return p;
-            }
-        }
-        return null;
+        return prenotazioni.get(codice.toUpperCase());
     }
 
     /**
@@ -266,7 +254,7 @@ public class GestorePrenotazioni {
     public List<Prenotazione> cercaPrenotazionePerCliente(String nome, String cognome) {
         List<Prenotazione> trovate = new ArrayList<>();
 
-        for (Prenotazione p : prenotazioni) {
+        for (Prenotazione p : prenotazioni.values()) {
             // Controllo che il cliente corrisponda
             if (p.getCliente().getNome().equalsIgnoreCase(nome) && p.getCliente().getCognome().equalsIgnoreCase(cognome)) {
                 trovate.add(p);
@@ -286,7 +274,7 @@ public class GestorePrenotazioni {
     public List<Prenotazione> cercaPrenotazionePerTitolo(String titoloParziale) {
         List<Prenotazione> trovate = new ArrayList<>();
 
-        for (Prenotazione p : prenotazioni) {
+        for (Prenotazione p : prenotazioni.values()) {
             // Controllo se la sotto-stringa compare nel titolo di un film
             if (p.getProiezione().getFilm().getTitolo().toLowerCase().contains(titoloParziale.toLowerCase())) {
                 trovate.add(p);
@@ -307,7 +295,7 @@ public class GestorePrenotazioni {
         List<Prenotazione> trovate = new ArrayList<>();
         boolean isDopoInizio, isPrimaFine;
 
-        for (Prenotazione p : prenotazioni) {
+        for (Prenotazione p : prenotazioni.values()) {
 
             LocalDate dataProiezione = p.getProiezione().getDataOra().toLocalDate();
 
@@ -357,8 +345,8 @@ public class GestorePrenotazioni {
     public void caricaDaFile(GestoreUtenti gestoreUtenti, GestoreProiezioni gestoreProiezioni) {
         File f = new File(FILE_PATH);
 
-        // Inizializzo l'ArrayList per evitare che rimanga null
-        this.prenotazioni = new ArrayList<>();
+        // Inizializzo la HashMap per evitare che rimanga null
+        this.prenotazioni = new HashMap<>();
 
         // Controllo di sicurezza: se il file non esiste, lo creiamo automaticamente
         if (!f.exists()) {
@@ -395,16 +383,15 @@ public class GestorePrenotazioni {
                     String titoloFilm = campi[2];
                     String dataString = campi[3];
 
-                    // All'interno del ciclo uso un try-catch locale per gestire le eccezioni di ricostruzione
                     try {
                         LocalDateTime dataOra = LocalDateTime.parse(dataString, formatter);
                         posti = Integer.parseInt(campi[4]);
 
-                        // Rimuoviamo il prefisso "PR" e convertiamo la parte rimanente in un intero.
+                        // Rimuovo il prefisso "PR" e convertiamo la parte rimanente in un intero.
                         codiceNumerico = Integer.parseInt(codice.replace("PR", ""));
 
                         // Se il codice letto nel file è maggiore o uguale al contatore attuale,
-                        // spostiamo in avanti il contatore per garantire che le prossime nuove prenotazioni
+                        // sposto in avanti il contatore per garantire che le prossime nuove prenotazioni
                         // abbiano un ID successivo e totalmente inedito.
                         if (codiceNumerico >= this.contatoreCodici) {
                             this.contatoreCodici = codiceNumerico + 1;
@@ -413,7 +400,7 @@ public class GestorePrenotazioni {
                         Cliente cliente = (Cliente) gestoreUtenti.cercaUtentePerUsername(username);
                         Proiezione proiezione = gestoreProiezioni.cercaProiezioneEsatta(titoloFilm, dataOra);
 
-                        // VALIDAZIONE DEI DATI: se qualcosa manca, scatta l'eccezione personalizzata
+                        // Validazione dati: se qualcosa manca, scatta l'eccezione personalizzata
                         if (cliente == null) {
                             throw new PrenotazioneException("Il cliente con username '" + username + "' non è presente nel database utenti.");
                         }
@@ -423,14 +410,14 @@ public class GestorePrenotazioni {
 
                         // Se i controlli passano, l'oggetto viene costruito in sicurezza
                         Prenotazione p = new Prenotazione(codice, cliente, proiezione, posti);
-                        this.prenotazioni.add(p);
+                        this.prenotazioni.put(codice, p);
 
                     } catch (PrenotazioneException e) {
-                        // Catturiamo l'eccezione e segnaliamo il problema specifico,
+                        // Catturo l'eccezione e segnaliamo il problema specifico,
                         // ma NON interrompiamo il ciclo. La riga successiva verrà letta normalmente.
                         System.out.println("Errore di integrità alla riga [" + codice + "]: " + e.getMessage());
                     } catch (Exception e) {
-                        // Protezione da parsing di numeri o date malformate nel CSV
+                        // Protezione da date malformate nel CSV
                         System.out.println("Errore di formato dati alla riga [" + codice + "]: campi corrotti nel file.");
                     }
                 }else {
@@ -458,7 +445,7 @@ public class GestorePrenotazioni {
             FileWriter w = new FileWriter(f, false);
             PrintWriter fOut = new PrintWriter(w);
 
-            for (Prenotazione p : prenotazioni) {
+            for (Prenotazione p : prenotazioni.values()) {
                 fOut.print(p.toCsv()); // Per ogni prenotazione salvo il formato csv
                 fOut.print("\n");
             }
