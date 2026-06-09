@@ -52,13 +52,16 @@ public class MenuCliente {
         boolean chiudi = false;
 
         do {
-            System.out.println("\n=== AREA PERSONALE CLIENTE ===");
+            System.out.println("\n=========================================");
+            System.out.println("         AREA PERSONALE CLIENTE          ");
+            System.out.println("=========================================");
             System.out.println("Benvenuto, " + cliente.getNome() + " " + cliente.getCognome() + "!");
             System.out.println("[1] Inserisci una nuova prenotazione");
             System.out.println("[2] Visualizza le tue prenotazioni");
             System.out.println("[3] Modifica la data di una prenotazione");
             System.out.println("[4] Cancella una prenotazione");
-            System.out.println("[X] Logout");
+            System.out.println("[X] Esci (Logout)");
+            System.out.println("=========================================");
             System.out.print("Scegli un'opzione: ");
             sel = sc.nextLine().trim().toUpperCase();
 
@@ -77,10 +80,10 @@ public class MenuCliente {
                     break;
                 case "X":
                     chiudi = true;
-                    System.out.println("Disconnessione effettuata con successo. Arrivederci!");
+                    System.out.println("\n[OK] Disconnessione effettuata con successo. Arrivederci!");
                     break;
                 default:
-                    System.out.println("Opzione non valida. Riprova.");
+                    System.out.println("\n[ERRORE] Opzione non valida. Riprova.");
             }
         } while (!chiudi);
 
@@ -94,7 +97,9 @@ public class MenuCliente {
      */
     private void inserisciPrenotazione() {
         Scanner sc = new Scanner(System.in);
-        System.out.println("\n--- NUOVA PRENOTAZIONE ---");
+        System.out.println("\n-----------------------------------------");
+        System.out.println("           NUOVA PRENOTAZIONE            ");
+        System.out.println("-----------------------------------------");
 
         LocalDate oggi = LocalDate.now();
         LocalDate fine = oggi.plusMonths(1);
@@ -102,19 +107,19 @@ public class MenuCliente {
         // Interrogazione del gestore per ottenere solo le proiezioni future
         List<Proiezione> proiezioni = gestoreProiezioni.cercaProiezione(null, null, oggi, fine, -1, -1);
         if (proiezioni.isEmpty()) {
-            System.out.println("Al momento non ci sono proiezioni disponibili nel cinema.");
+            System.out.println("[INFO] Al momento non ci sono proiezioni disponibili nel cinema.");
             return;
         }
 
         // Sfrutta il metodo di utilità per stampare e impaginare a blocchi le proiezioni disponibili
         stampaListaProiezioni(proiezioni);
 
-        System.out.print("Seleziona il numero della proiezione desiderata: ");
+        System.out.print("\nSeleziona il numero della proiezione desiderata: ");
         try {
             // Controllo preventivo dell'indice immesso
             int indice = Integer.parseInt(sc.nextLine());
             if (indice < 0 || indice >= proiezioni.size()) {
-                System.out.println("Selezione non valida.");
+                System.out.println("[ERRORE] Selezione non valida.");
                 return;
             }
 
@@ -123,19 +128,19 @@ public class MenuCliente {
             int posti = Integer.parseInt(sc.nextLine());
 
             if (posti <= 0) {
-                System.out.println("Errore: Il numero di posti deve essere maggiore di zero.");
+                System.out.println("[ERRORE] Il numero di posti deve essere maggiore di zero.");
                 return;
             }
 
             // Inoltro richiesta alla business logic passandoci il riferimento 'this.cliente'
             Prenotazione p = gestorePrenotazioni.creaPrenotazione(this.cliente, scelta, posti);
-            System.out.println("\n[Successo] Prenotazione effettuata!");
+            System.out.println("\n[OK] Prenotazione effettuata con successo!");
             System.out.println(p);
 
         } catch (NumberFormatException e) {
-            System.out.println("Errore: Inserisci un valore numerico valido.");
+            System.out.println("[ERRORE] Inserisci un valore numerico valido.");
         } catch (Exception e) {
-            System.out.println("Impossibile prenotare: " + e.getMessage());
+            System.out.println("[ERRORE] Impossibile prenotare: " + e.getMessage());
         }
     }
 
@@ -144,13 +149,15 @@ public class MenuCliente {
      * di titolarità del cliente correntemente loggato nel modulo di sessione.
      */
     private void mostraPrenotazioni() {
-        System.out.println("\n--- LE TUE PRENOTAZIONI ---");
+        System.out.println("\n-----------------------------------------");
+        System.out.println("           LE TUE PRENOTAZIONI           ");
+        System.out.println("-----------------------------------------");
 
         // Richiesta di estrazione dei record filtrando per l'attributo d'istanza 'this.cliente'
         List<Prenotazione> mie = gestorePrenotazioni.getPrenotazioniPerCliente(this.cliente);
 
         if (mie.isEmpty()) {
-            System.out.println("Non hai ancora effettuato nessuna prenotazione.");
+            System.out.println("[INFO] Non hai ancora effettuato nessuna prenotazione.");
             return;
         }
 
@@ -165,7 +172,9 @@ public class MenuCliente {
      */
     private void modificaPrenotazione() {
         Scanner sc = new Scanner(System.in);
-        System.out.println("\n--- MODIFICA DATA SPETTACOLO ---");
+        System.out.println("\n-----------------------------------------");
+        System.out.println("        MODIFICA DATA SPETTACOLO         ");
+        System.out.println("-----------------------------------------");
 
         System.out.print("Inserisci il codice univoco della prenotazione da modificare (es. PR000001): ");
         String codice = sc.nextLine().trim();
@@ -173,7 +182,7 @@ public class MenuCliente {
         // Controllo di esistenza del codice inserito
         Prenotazione vecchiaPrenotazione = gestorePrenotazioni.cercaPrenotazionePerCodice(codice);
         if (vecchiaPrenotazione == null) {
-            System.out.println("Errore: Nessuna prenotazione trouvata con il codice " + codice);
+            System.out.println("[ERRORE] Nessuna prenotazione trovata con il codice " + codice);
             return;
         }
 
@@ -186,7 +195,7 @@ public class MenuCliente {
         List<Proiezione> proiezioni = gestoreProiezioni.cercaProiezione(titoloFilm, null, oggi, fine, -1, -1);
 
         if (proiezioni.isEmpty()) {
-            System.out.println("Al momento non ci sono altre date future disponibili per il film: " + titoloFilm);
+            System.out.println("[INFO] Al momento non ci sono altre date future disponibili per il film: " + titoloFilm);
             return;
         }
 
@@ -194,12 +203,12 @@ public class MenuCliente {
         System.out.println("Seleziona la nuova data/ora per il film '" + titoloFilm + "':");
         stampaListaProiezioni(proiezioni);
 
-        System.out.print("Scegli la nuova proiezione: ");
+        System.out.print("\nScegli la nuova proiezione: ");
 
         try {
             int indice = Integer.parseInt(sc.nextLine());
             if (indice < 0 || indice >= proiezioni.size()) {
-                System.out.println("Selezione errata.");
+                System.out.println("[ERRORE] Selezione non valida.");
                 return;
             }
 
@@ -207,12 +216,12 @@ public class MenuCliente {
 
             // Richiesta di allineamento nello stato del gestore
             gestorePrenotazioni.modificaPrenotazione(codice, nuovaProiezione);
-            System.out.println("[Successo] Prenotazione aggiornata con successo.");
+            System.out.println("[OK] Prenotazione aggiornata con successo.");
 
         } catch (NumberFormatException e) {
-            System.out.println("Errore: Input numerico non valido.");
+            System.out.println("[ERRORE] Input numerico non valido.");
         } catch (PrenotazioneException e) {
-            System.out.println("Modifica fallita: " + e.getMessage());
+            System.out.println("[ERRORE] Modifica fallita: " + e.getMessage());
         }
     }
 
@@ -222,16 +231,18 @@ public class MenuCliente {
      */
     private void cancellaPrenotazione() {
         Scanner sc = new Scanner(System.in);
-        System.out.println("\n--- CANCELLAZIONE PRENOTAZIONE ---");
+        System.out.println("\n-----------------------------------------");
+        System.out.println("        CANCELLAZIONE PRENOTAZIONE        ");
+        System.out.println("-----------------------------------------");
         System.out.print("Inserisci il codice univoco di 8 caratteri da rimuovere: ");
         String codice = sc.nextLine().trim();
 
         try {
             gestorePrenotazioni.eliminaPrenotazione(codice);
-            System.out.println("[Successo] La prenotazione è stata cancellata correttamente.");
+            System.out.println("[OK] La prenotazione è stata cancellata correttamente.");
 
         } catch (PrenotazioneException e) {
-            System.out.println("Cancellazione fallita: " + e.getMessage());
+            System.out.println("[ERRORE] Cancellazione fallita: " + e.getMessage());
         }
     }
 
@@ -243,10 +254,10 @@ public class MenuCliente {
      */
     private void stampaListaPrenotazioni(List<Prenotazione> risultati) {
         if (risultati.isEmpty()) {
-            System.out.println("Nessun elemento da mostrare.");
+            System.out.println("[INFO] Nessun elemento da mostrare.");
             return;
         }
-        System.out.println("\nPrenotazioni rintracciate (" + risultati.size() + "):");
+        System.out.println("\nPrenotazioni trovate (" + risultati.size() + "):");
 
         Scanner sc = new Scanner(System.in);
         int index = 0;
@@ -256,8 +267,7 @@ public class MenuCliente {
             index += 25;
 
             if (index < risultati.size()) {
-                System.out.print("Record da " + index + " su " + risultati.size() + ". ");
-                System.out.print("Premere INVIO per continuare la lettura...");
+                System.out.print("\n--> Record da " + index + " su " + risultati.size() + ". Premere INVIO per continuare la lettura...");
                 sc.nextLine();
             }
         } while (index < risultati.size());
@@ -272,7 +282,7 @@ public class MenuCliente {
      */
     private void stampaListaProiezioni(List<Proiezione> risultati) {
         if (risultati.isEmpty()) {
-            System.out.println("Nessun elemento da mostrare.");
+            System.out.println("[INFO] Nessun elemento da mostrare.");
             return;
         }
         System.out.println("\nProiezioni disponibili (" + risultati.size() + "):");
@@ -291,8 +301,7 @@ public class MenuCliente {
             index += 25;
 
             if (index < risultati.size()) {
-                System.out.print("Proiezioni " + index + " su " + risultati.size() + ". ");
-                System.out.print("Premere INVIO per continuare la lettura...");
+                System.out.print("\n--> Proiezioni " + index + " su " + risultati.size() + ". Premere INVIO per continuare la lettura...");
                 sc.nextLine();
             }
         } while (index < risultati.size());

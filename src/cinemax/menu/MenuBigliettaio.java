@@ -42,10 +42,13 @@ public class MenuBigliettaio {
         boolean chiudi = false;
 
         do {
-            System.out.println("\n=== SPORTELLO BIGLIETTERIA ===");
+            System.out.println("\n=========================================");
+            System.out.println("         SPORTELLO BIGLIETTERIA          ");
+            System.out.println("=========================================");
             System.out.println("[1] Visualizza le prenotazioni di OGGI");
             System.out.println("[2] Apri il modulo di ricerca prenotazioni");
-            System.out.println("[X] Logout");
+            System.out.println("[X] Esci (Logout)");
+            System.out.println("=========================================");
             System.out.print("Scegli un'opzione: ");
             sel = sc.nextLine().trim().toUpperCase();
 
@@ -60,10 +63,10 @@ public class MenuBigliettaio {
                     break;
                 case "X":
                     chiudi = true;
-                    System.out.println("Chiusura sessione biglietteria effettuata. Arrivederci!");
+                    System.out.println("\n[OK] Chiusura sessione biglietteria effettuata. Arrivederci!");
                     break;
                 default:
-                    System.out.println("Opzione non valida. Riprova.");
+                    System.out.println("\n[ERRORE] Opzione non valida. Riprova.");
             }
         } while (!chiudi);
         return true;
@@ -76,13 +79,15 @@ public class MenuBigliettaio {
      * @see GestorePrenotazioni#visualizzaPrenotazioniOdierne()
      */
     private void mostraPrenotazioniOdierne() {
-        System.out.println("\n--- PRENOTAZIONI NELLA DATA ODIERNA ---");
+        System.out.println("\n-----------------------------------------");
+        System.out.println("     PRENOTAZIONI NELLA DATA ODIERNA     ");
+        System.out.println("-----------------------------------------");
 
         // Estrazione record sfruttando l'attributo d'istanza 'this.gestorePrenotazioni'
         List<Prenotazione> odierne = this.gestorePrenotazioni.visualizzaPrenotazioniOdierne();
 
         if (odierne.isEmpty()) {
-            System.out.println("Nessuna prenotazione registrata per gli spettacoli di oggi.");
+            System.out.println("[INFO] Nessuna prenotazione registrata per gli spettacoli di oggi.");
             return;
         }
 
@@ -100,32 +105,35 @@ public class MenuBigliettaio {
         String scelta;
 
         do {
-            System.out.println("\n--- MODULO DI RICERCA PRENOTAZIONI ---");
+            System.out.println("\n=========================================");
+            System.out.println("     MODULO DI RICERCA PRENOTAZIONI      ");
+            System.out.println("=========================================");
             System.out.println("[1] Cerca per Codice Univoco (es. PR000001)");
             System.out.println("[2] Cerca per Anagrafica Cliente (Nome e Cognome)");
             System.out.println("[3] Cerca per Titolo del Film (Ricerca parziale)");
             System.out.println("[4] Cerca per Intervallo di Date");
             System.out.println("[X] Torna al menu precedente");
+            System.out.println("=========================================");
             System.out.print("Scegli il criterio di ricerca: ");
             scelta = sc.nextLine().trim().toUpperCase();
 
             switch (scelta) {
                 case "1":
-                    System.out.print("Inserisci il codice esatto (8 caratteri): ");
+                    System.out.print("\nInserisci il codice esatto (8 caratteri): ");
                     String cod = sc.nextLine().trim();
 
                     // Ricerca puntuale per chiave primaria
                     Prenotazione trovata = gestorePrenotazioni.cercaPrenotazionePerCodice(cod);
                     if (trovata != null) {
-                        System.out.println("\nPrenotazione Rintracciata:");
+                        System.out.println("\n[OK] Prenotazione rintracciata:");
                         System.out.println(trovata);
                     } else {
-                        System.out.println("Nessun record corrispondente al codice inserito.");
+                        System.out.println("[INFO] Nessun record corrispondente al codice inserito.");
                     }
                     break;
 
                 case "2":
-                    System.out.print("Inserisci il nome del cliente: ");
+                    System.out.print("\nInserisci il nome del cliente: ");
                     String nome = sc.nextLine().trim();
                     System.out.print("Inserisci il cognome del cliente: ");
                     String cognome = sc.nextLine().trim();
@@ -135,7 +143,7 @@ public class MenuBigliettaio {
                     break;
 
                 case "3":
-                    System.out.print("Inserisci il titolo del film (anche parziale): ");
+                    System.out.print("\nInserisci il titolo del film (anche parziale): ");
                     String titolo = sc.nextLine().trim();
 
                     // Estrazione tramite algoritmo di ricerca parziale (contains/indexOf)
@@ -144,7 +152,7 @@ public class MenuBigliettaio {
 
                 case "4":
                     try {
-                        System.out.print("Inserisci data inizio intervallo (AAAA-MM-DD) o premi INVIO per omettere: ");
+                        System.out.print("\nInserisci data inizio intervallo (AAAA-MM-DD) o premi INVIO per omettere: ");
                         String inizioInput = sc.nextLine().trim();
                         LocalDate inizio = inizioInput.isEmpty() ? null : LocalDate.parse(inizioInput);
 
@@ -156,7 +164,7 @@ public class MenuBigliettaio {
                         stampalista(gestorePrenotazioni.cercaPrenotazionePerDate(inizio, fine));
                     } catch (DateTimeParseException e) {
                         // Protezione da crash indotti da inserimenti di stringhe non conformi allo standard ISO-8601
-                        System.out.println("Errore: Formato data non coerente. Usa la struttura AAAA-MM-DD.");
+                        System.out.println("[ERRORE] Formato data non coerente. Usa la struttura AAAA-MM-DD.");
                     }
                     break;
 
@@ -164,7 +172,7 @@ public class MenuBigliettaio {
                     break;
 
                 default:
-                    System.out.println("Criterio non riconosciuto.");
+                    System.out.println("[ERRORE] Criterio non riconosciuto.");
             }
         } while (!scelta.equals("X"));
     }
@@ -178,10 +186,10 @@ public class MenuBigliettaio {
      */
     private void stampalista(List<Prenotazione> risultati) {
         if (risultati.isEmpty()) {
-            System.out.println("La ricerca non ha prodotto alcun risultato.");
+            System.out.println("[INFO] La ricerca non ha prodotto alcun risultato.");
             return;
         }
-        System.out.println("\nCorrispondenze rintracciate (" + risultati.size() + "):");
+        System.out.println("\nPrenotazioni trovate (" + risultati.size() + "):");
 
         Scanner sc = new Scanner(System.in);
         int index = 0;
@@ -192,8 +200,7 @@ public class MenuBigliettaio {
 
             // Verifica di esistenza di record residui oltre la pagina renderizzata
             if (index < risultati.size()) {
-                System.out.print("Proiezioni " + index + " su " + risultati.size() + ". ");
-                System.out.print("Premere invio per continuare");
+                System.out.print("\n--> Mostrate " + index + " di " + risultati.size() + " prenotazioni. Premere INVIO per continuare...");
                 sc.nextLine(); // Blocco temporaneo dello scanner per scopi di lettura antropica
             }
         } while (index < risultati.size());
