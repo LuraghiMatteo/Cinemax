@@ -25,15 +25,20 @@ import java.util.Scanner;
  */
 public class MenuProiezionista {
 
+    private final GestoreProiezioni gestoreProiezioni;
+
+    public MenuProiezionista(GestoreProiezioni gestoreProiezioni) {
+        this.gestoreProiezioni = gestoreProiezioni;
+    }
+
     /**
      * Visualizza il menu principale per l'utente Proiezionista e gestisce la navigazione interattiva
      * tra le varie operazioni disponibili (inserimento, modifica ed eliminazione).
      * Rimane attivo in un ciclo finché l'utente non seleziona l'opzione di logout (X).
      *
-     * @param gestoreProiezioni il gestore della business logic per i film e le proiezioni
      * @return true al termine dell'esecuzione del menu (logout effettuato)
      */
-    public static boolean menu(GestoreProiezioni gestoreProiezioni) {
+    public boolean esegui() {
         Scanner sc = new Scanner(System.in);
         String sel;
         boolean chiudi = false;
@@ -49,13 +54,13 @@ public class MenuProiezionista {
 
             switch (sel.toUpperCase()) {
                 case "1":
-                    inserisciFilmEProiezioni(gestoreProiezioni);
+                    inserisciFilmEProiezioni();
                     break;
                 case "2":
-                    modificaProiezione(gestoreProiezioni);
+                    modificaProiezione();
                     break;
                 case "3":
-                    eliminaProiezione(gestoreProiezioni);
+                    eliminaProiezione();
                     break;
                 case "X":
                     chiudi = true;
@@ -72,17 +77,15 @@ public class MenuProiezionista {
      * Gestisce l'inserimento guidato passo-passo di un nuovo film e della prima proiezione associata.
      * Richiede l'input di:
      * - Titolo (non vuoto)
-     * - Genere (selezionato tra i valori dell'enum {@link Genere})
+     * - Genere (selezionato tra i valori dell'enum Genere)
      * - Regista (non vuoto)
      * - Anno di uscita (compreso tra il 1800 e il 2100)
      * - Durata in minuti (maggiore di 0)
      * - Età minima per la visione (maggiore o uguale a 0)
      * Successivamente richiede la data e l'ora per la proiezione iniziale e il relativo costo del biglietto,
      * effettuando la validazione per ciascun campo.
-     *
-     * @param gestoreProiezioni il gestore da utilizzare per registrare la nuova proiezione e il film
      */
-    private static void inserisciFilmEProiezioni(GestoreProiezioni gestoreProiezioni) {
+    private void inserisciFilmEProiezioni() {
         Scanner sc = new Scanner(System.in);
         System.out.println("\n--- Inserimento nuovo Film ---");
         
@@ -218,10 +221,9 @@ public class MenuProiezionista {
      * con impaginazione (25 elementi alla volta) e richiede all'utente di selezionare
      * l'indice della proiezione desiderata.
      *
-     * @param gestoreProiezioni il gestore delle proiezioni per effettuare la ricerca
      * @return la proiezione selezionata dall'utente
      */
-    private static Proiezione selezionaProiezione(GestoreProiezioni gestoreProiezioni) {
+    private Proiezione selezionaProiezione() {
         Scanner sc = new Scanner(System.in);
         String titolo;
         List<Proiezione> valide;
@@ -267,13 +269,11 @@ public class MenuProiezionista {
     /**
      * Consente al proiezionista di selezionare una proiezione e modificarne la data e l'ora di programmazione.
      * La nuova data e ora vengono acquisite separatamente e validate nel formato 'yyyy-MM-dd HH:mm:ss'.
-     *
-     * @param gestoreProiezioni il gestore delle proiezioni incaricato di eseguire l'aggiornamento
      */
-    private static void modificaProiezione(GestoreProiezioni gestoreProiezioni) {
+    private void modificaProiezione() {
         Scanner sc = new Scanner(System.in);
         System.out.println("\n--- Modifica Data Proiezione ---");
-        Proiezione p = selezionaProiezione(gestoreProiezioni);
+        Proiezione p = selezionaProiezione();
         if (p != null) {
             String dataStr = "";
             boolean dataValida = false;
@@ -310,15 +310,13 @@ public class MenuProiezionista {
 
     /**
      * Gestisce l'eliminazione controllata di una proiezione esistente dal palinsesto.
-     * Richiede la selezione della proiezione tramite {@link #selezionaProiezione}
+     * Richiede la selezione della proiezione tramite il metodo selezionaProiezione
      * e richiede una conferma esplicita ('s' o 'n') all'utente prima di procedere con la rimozione.
-     *
-     * @param gestoreProiezioni il gestore delle proiezioni incaricato di rimuovere la proiezione
      */
-    private static void eliminaProiezione(GestoreProiezioni gestoreProiezioni) {
+    private void eliminaProiezione() {
         Scanner sc = new Scanner(System.in);
         System.out.println("\n--- Elimina Proiezione ---");
-        Proiezione p = selezionaProiezione(gestoreProiezioni);
+        Proiezione p = selezionaProiezione();
         if (p != null) {
             System.out.print("Sei sicuro di voler eliminare questa proiezione? (s/n): ");
             String conferm = sc.nextLine().trim();

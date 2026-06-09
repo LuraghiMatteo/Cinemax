@@ -56,7 +56,7 @@ public class Cinemax {
                                 chiudi = MenuBigliettaio.menu(gestorePrenotazioni);
                                 break;
                             case PROIEZIONISTA:
-                                chiudi = MenuProiezionista.menu(gestoreProiezioni);
+                                chiudi = new MenuProiezionista(gestoreProiezioni).esegui();
                                 break;
                             default:
                                 System.out.println("Ruolo di sistema non riconosciuto.");
