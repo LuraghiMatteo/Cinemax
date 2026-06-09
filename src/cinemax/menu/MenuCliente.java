@@ -16,7 +16,8 @@ import java.util.Scanner;
  * Classe convertita in programmazione a oggetti (OOP): incapsula i gestori di business logic
  * e il profilo del cliente in sessione come attributi d'istanza.
  * Consente l'inserimento, la visualizzazione, la modifica e la cancellazione delle proprie prenotazioni.
- * * @author Matteo Luraghi - Matr: 765632 - Sede: VA
+ *
+ * @author Matteo Luraghi - Matr: 765632 - Sede: VA
  */
 public class MenuCliente {
 
@@ -63,19 +64,15 @@ public class MenuCliente {
 
             switch (sel) {
                 case "1":
-                    // Chiamata al metodo d'istanza locale per l'inserimento
                     inserisciPrenotazione();
                     break;
                 case "2":
-                    // Chiamata al metodo d'istanza locale per la stampa elenco
                     mostraPrenotazioni();
                     break;
                 case "3":
-                    // Chiamata al metodo d'istanza per il cambio data/ora
                     modificaPrenotazione();
                     break;
                 case "4":
-                    // Chiamata al metodo d'istanza per l'eliminazione logica o fisica
                     cancellaPrenotazione();
                     break;
                 case "X":
@@ -93,26 +90,24 @@ public class MenuCliente {
     /**
      * Gestisce il flusso interattivo a terminale per l'inserimento guidato di una nuova prenotazione.
      * Sfrutta il metodo multi-filtro del gestore proiezioni impostando un intervallo temporale dinamico di un anno
-     * a partire dalla data odierna per mostrare il palinsesto futuro. Validazione degli input integrata.
+     * a partire dalla data odierna per mostrare il palinsesto futuro.
      */
     private void inserisciPrenotazione() {
         Scanner sc = new Scanner(System.in);
         System.out.println("\n--- NUOVA PRENOTAZIONE ---");
 
         LocalDate oggi = LocalDate.now();
-        LocalDate fineAnno = oggi.plusYears(1);
+        LocalDate fine = oggi.plusMonths(1);
 
         // Interrogazione del gestore per ottenere solo le proiezioni future
-        List<Proiezione> proiezioni = gestoreProiezioni.cercaProiezione(null, null, oggi, fineAnno, -1, -1);
+        List<Proiezione> proiezioni = gestoreProiezioni.cercaProiezione(null, null, oggi, fine, -1, -1);
         if (proiezioni.isEmpty()) {
             System.out.println("Al momento non ci sono proiezioni disponibili nel cinema.");
             return;
         }
 
-        // Rendering del palinsesto numerato a schermo
-        for (int i = 0; i < proiezioni.size(); i++) {
-            System.out.println("[" + i + "] " + proiezioni.get(i));
-        }
+        // Sfrutta il metodo di utilità per stampare e impaginare a blocchi le proiezioni disponibili
+        stampaListaProiezioni(proiezioni);
 
         System.out.print("Seleziona il numero della proiezione desiderata: ");
         try {
@@ -132,16 +127,14 @@ public class MenuCliente {
                 return;
             }
 
-            // Inoltro richiesta di prenotazione alla business logic passandoci il riferimento 'this.cliente'
+            // Inoltro richiesta alla business logic passandoci il riferimento 'this.cliente'
             Prenotazione p = gestorePrenotazioni.creaPrenotazione(this.cliente, scelta, posti);
             System.out.println("\n[Successo] Prenotazione effettuata!");
-            System.out.println(p); // Visualizzazione riepilogativa
+            System.out.println(p);
 
         } catch (NumberFormatException e) {
-            // Intercettazione di input non numerici o caratteri testuali errati
             System.out.println("Errore: Inserisci un valore numerico valido.");
         } catch (Exception e) {
-            // Cattura di violazioni sui vincoli (es. PostiEsauritiException) scaturite dal gestore
             System.out.println("Impossibile prenotare: " + e.getMessage());
         }
     }
@@ -161,11 +154,8 @@ public class MenuCliente {
             return;
         }
 
-        // Scansione ciclica ed output strutturato
-        for (Prenotazione p : mie) {
-            System.out.println(p);
-            System.out.println("-----------------------------------");
-        }
+        // Sfrutta il metodo di utilità generico per stampare ed impaginare le prenotazioni del cliente
+        stampaListaPrenotazioni(mie);
     }
 
     /**
@@ -183,7 +173,7 @@ public class MenuCliente {
         // Controllo di esistenza del codice inserito
         Prenotazione vecchiaPrenotazione = gestorePrenotazioni.cercaPrenotazionePerCodice(codice);
         if (vecchiaPrenotazione == null) {
-            System.out.println("Errore: Nessuna prenotazione trovata con il codice " + codice);
+            System.out.println("Errore: Nessuna prenotazione trouvata con il codice " + codice);
             return;
         }
 
@@ -192,19 +182,18 @@ public class MenuCliente {
 
         // Generazione elenco date alternative filtrando per il titolo del film
         LocalDate oggi = LocalDate.now();
-        LocalDate fineAnno = oggi.plusYears(1);
-        List<Proiezione> proiezioni = gestoreProiezioni.cercaProiezione(titoloFilm, null, oggi, fineAnno, -1, -1);
+        LocalDate fine = oggi.plusMonths(1);
+        List<Proiezione> proiezioni = gestoreProiezioni.cercaProiezione(titoloFilm, null, oggi, fine, -1, -1);
 
         if (proiezioni.isEmpty()) {
             System.out.println("Al momento non ci sono altre date future disponibili per il film: " + titoloFilm);
             return;
         }
 
-        // Stampa a video del palinsesto ristretto
+        // Sfrutta il metodo di utilità riutilizzabile per stampare le opzioni di cambio data disponibili
         System.out.println("Seleziona la nuova data/ora per il film '" + titoloFilm + "':");
-        for (int i = 0; i < proiezioni.size(); i++) {
-            System.out.println("[" + i + "] " + proiezioni.get(i));
-        }
+        stampaListaProiezioni(proiezioni);
+
         System.out.print("Scegli la nuova proiezione: ");
 
         try {
@@ -223,7 +212,6 @@ public class MenuCliente {
         } catch (NumberFormatException e) {
             System.out.println("Errore: Input numerico non valido.");
         } catch (PrenotazioneException e) {
-            // Gestione protetta dei vincoli violati (es. tentativi di modifica a ridosso dello spettacolo)
             System.out.println("Modifica fallita: " + e.getMessage());
         }
     }
@@ -239,13 +227,74 @@ public class MenuCliente {
         String codice = sc.nextLine().trim();
 
         try {
-            // Delega dell'eliminazione fisica dalla lista centralizzata RAM
             gestorePrenotazioni.eliminaPrenotazione(codice);
             System.out.println("[Successo] La prenotazione è stata cancellata correttamente.");
 
         } catch (PrenotazioneException e) {
-            // Cattura mirata in caso di codice inesistente o spettacolo già iniziato
             System.out.println("Cancellazione fallita: " + e.getMessage());
         }
+    }
+
+    /**
+     * Metodo di utilità specifico per l'impaginazione controllata delle PRENOTAZIONI.
+     * Richiama internamente il visualizzatore statico del GestorePrenotazioni.
+     *
+     * @param risultati La lista di prenotazioni da mostrare a video a blocchi da 25.
+     */
+    private void stampaListaPrenotazioni(List<Prenotazione> risultati) {
+        if (risultati.isEmpty()) {
+            System.out.println("Nessun elemento da mostrare.");
+            return;
+        }
+        System.out.println("\nPrenotazioni rintracciate (" + risultati.size() + "):");
+
+        Scanner sc = new Scanner(System.in);
+        int index = 0;
+        do {
+            // Chiamata al visualizzatore del gestore prenotazioni
+            GestorePrenotazioni.visualizzaPrenotazioni(risultati, index);
+            index += 25;
+
+            if (index < risultati.size()) {
+                System.out.print("Record da " + index + " su " + risultati.size() + ". ");
+                System.out.print("Premere INVIO per continuare la lettura...");
+                sc.nextLine();
+            }
+        } while (index < risultati.size());
+    }
+
+    /**
+     * Metodo di utilità specifico per l'impaginazione controllata delle PROIEZIONI.
+     * Risolve il problema del menù inserimento stampando l'indice corretto affiancato all'oggetto Proiezione,
+     * garantendo l'impaginazione a blocchi da 25 senza saturare la console.
+     *
+     * @param risultati La lista di proiezioni da mostrare a video a blocchi da 25.
+     */
+    private void stampaListaProiezioni(List<Proiezione> risultati) {
+        if (risultati.isEmpty()) {
+            System.out.println("Nessun elemento da mostrare.");
+            return;
+        }
+        System.out.println("\nProiezioni disponibili (" + risultati.size() + "):");
+
+        Scanner sc = new Scanner(System.in);
+        int index = 0;
+        do {
+            // Calcoliamo la fine del blocco attuale (massimo 25 elementi alla volta o la fine della lista)
+            int fineBlocco = Math.min(index + 25, risultati.size());
+
+            // Ciclo locale per stampare il blocco corrente mantenendo intatto l'indice [i] per la selezione
+            for (int i = index; i < fineBlocco; i++) {
+                System.out.println("[" + i + "] " + risultati.get(i));
+            }
+
+            index += 25;
+
+            if (index < risultati.size()) {
+                System.out.print("Proiezioni " + index + " su " + risultati.size() + ". ");
+                System.out.print("Premere INVIO per continuare la lettura...");
+                sc.nextLine();
+            }
+        } while (index < risultati.size());
     }
 }

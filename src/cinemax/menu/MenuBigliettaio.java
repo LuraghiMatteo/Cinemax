@@ -191,11 +191,11 @@ public class MenuBigliettaio {
             index += 25;
 
             // Verifica di esistenza di record residui oltre la pagina renderizzata
-            if (index < risultati.toArray().length) {
-                System.out.print("Proiezioni " + index + " su " + risultati.toArray().length + ". ");
+            if (index < risultati.size()) {
+                System.out.print("Proiezioni " + index + " su " + risultati.size() + ". ");
                 System.out.print("Premere invio per continuare");
                 sc.nextLine(); // Blocco temporaneo dello scanner per scopi di lettura antropica
             }
-        } while (index < risultati.toArray().length);
+        } while (index < risultati.size());
     }
 }
