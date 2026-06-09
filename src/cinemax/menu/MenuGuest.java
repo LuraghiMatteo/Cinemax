@@ -33,6 +33,12 @@ public class MenuGuest {
     private final GestoreUtenti gestoreUtenti;
     private final GestoreProiezioni gestoreProiezioni;
 
+    /**
+     * Costruttore della classe MenuGuest.
+     *
+     * @param gestoreUtenti      Il gestore per le operazioni sugli utenti.
+     * @param gestoreProiezioni  Il gestore per le ricerche sulle proiezioni.
+     */
     public MenuGuest(GestoreUtenti gestoreUtenti, GestoreProiezioni gestoreProiezioni) {
         this.gestoreUtenti = gestoreUtenti;
         this.gestoreProiezioni = gestoreProiezioni;
@@ -162,6 +168,10 @@ public class MenuGuest {
         }
     }
 
+    /**
+     * Avvia l'interfaccia interattiva per la ricerca di proiezioni tramite titolo.
+     * Richiede l'inserimento di una stringa e chiama il metodo di ricerca.
+     */
     private void ricercaPerTitolo() {
         Scanner sc = new Scanner(System.in);
         String sel = "";
@@ -177,6 +187,10 @@ public class MenuGuest {
         } while (!sel.equals("esci"));
     }
 
+    /**
+     * Avvia l'interfaccia interattiva per la ricerca di proiezioni tramite genere.
+     * Mostra l'elenco dei generi disponibili e richiede una scelta.
+     */
     private void ricercaPerGenere() {
         Scanner sc = new Scanner(System.in);
         String sel = "";
@@ -200,6 +214,10 @@ public class MenuGuest {
         } while (!sel.equals("esci"));
     }
 
+    /**
+     * Avvia l'interfaccia interattiva per la ricerca di proiezioni tramite prezzo.
+     * Consente di cercare per prezzo esatto o per un intervallo di prezzi.
+     */
     private void ricercaPerPrezzo() {
         Scanner sc = new Scanner(System.in);
         String sel = "";
@@ -248,6 +266,10 @@ public class MenuGuest {
         } while (!sel.equals("esci"));
     }
 
+    /**
+     * Avvia l'interfaccia interattiva per la ricerca di proiezioni tramite data.
+     * Consente di cercare per data esatta o per un intervallo di date.
+     */
     private void ricercaPerData() {
         Scanner sc = new Scanner(System.in);
         String sel = "";
@@ -294,6 +316,10 @@ public class MenuGuest {
         } while (!sel.equals("esci"));
     }
 
+    /**
+     * Avvia l'interfaccia interattiva per la ricerca combinata (mix) di proiezioni.
+     * Consente di filtrare contemporaneamente per titolo, genere, date e prezzi.
+     */
     private void ricercaMixInterattiva() {
         Scanner sc = new Scanner(System.in);
         String sel = "";
@@ -370,6 +396,11 @@ public class MenuGuest {
         } while (!sel.equals("esci"));
     }
 
+    /**
+     * Effettua la ricerca delle proiezioni per titolo e ne gestisce la visualizzazione paginata.
+     *
+     * @param titolo Il titolo o parte del titolo del film da cercare.
+     */
     private void cercaTitolo(String titolo) {
         Scanner sc = new Scanner(System.in);
         List<Proiezione> valide = gestoreProiezioni.cercaProiezione(titolo);
@@ -389,6 +420,11 @@ public class MenuGuest {
         }
     }
 
+    /**
+     * Effettua la ricerca delle proiezioni per genere e ne gestisce la visualizzazione paginata.
+     *
+     * @param genere Il genere cinematografico da filtrare.
+     */
     private void cercaGenere(Genere genere) {
         Scanner sc = new Scanner(System.in);
         List<Proiezione> valide = gestoreProiezioni.cercaProiezione(genere);
@@ -408,6 +444,12 @@ public class MenuGuest {
         }
     }
 
+    /**
+     * Effettua la ricerca delle proiezioni per range di prezzo e ne gestisce la visualizzazione paginata.
+     *
+     * @param min Prezzo minimo (inclusivo).
+     * @param max Prezzo massimo (inclusivo).
+     */
     private void cercaPrezzo(double min, double max) {
         Scanner sc = new Scanner(System.in);
         List<Proiezione> valide = gestoreProiezioni.cercaProiezione(min, max);
@@ -431,6 +473,12 @@ public class MenuGuest {
         }
     }
 
+    /**
+     * Effettua la ricerca delle proiezioni per range di date e ne gestisce la visualizzazione paginata.
+     *
+     * @param dataIn Data di inizio (inclusiva).
+     * @param dataFin Data di fine (inclusiva).
+     */
     private void cercaData(LocalDate dataIn, LocalDate dataFin) {
         Scanner sc = new Scanner(System.in);
         List<Proiezione> valide = gestoreProiezioni.cercaProiezione(dataIn, dataFin);
@@ -452,6 +500,16 @@ public class MenuGuest {
         }
     }
 
+    /**
+     * Effettua la ricerca multi-filtro delle proiezioni e ne gestisce la visualizzazione paginata.
+     *
+     * @param titolo    Titolo o parte del titolo (opzionale).
+     * @param genere    Genere cinematografico (opzionale).
+     * @param dataIn    Data inizio intervallo (opzionale).
+     * @param dataFin   Data fine intervallo (opzionale).
+     * @param prezzoMin Prezzo minimo (opzionale, -1 per ignorare).
+     * @param prezzoMax Prezzo massimo (opzionale, -1 per ignorare).
+     */
     private void cercaMix(String titolo, Genere genere, LocalDate dataIn, LocalDate dataFin, double prezzoMin, double prezzoMax) {
         Scanner sc = new Scanner(System.in);
         List<Proiezione> valide = gestoreProiezioni.cercaProiezione(titolo, genere, dataIn, dataFin, prezzoMin, prezzoMax);
