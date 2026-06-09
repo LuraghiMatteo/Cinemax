@@ -5,29 +5,50 @@ import cinemax.gestori.GestoreProiezioni;
 import cinemax.modelli.Cliente;
 import cinemax.modelli.Prenotazione;
 import cinemax.modelli.Proiezione;
-import cinemax.eccezioni.PrenotazioneException; // Assicurati che il package sia corretto
+import cinemax.eccezioni.PrenotazioneException;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
 /**
- * Gestisce l'interfaccia a riga di comando (TUI) per le funzionalità dedicate al Cliente autenticato.
+ * Gestisce l'interfaccia utente testuale (TUI) per le funzionalità dedicate al Cliente autenticato.
+ * Classe convertita in programmazione a oggetti (OOP): incapsula i gestori di business logic
+ * e il profilo del cliente in sessione come attributi d'istanza.
  * Consente l'inserimento, la visualizzazione, la modifica e la cancellazione delle proprie prenotazioni.
  * * @author Matteo Luraghi - Matr: 765632 - Sede: VA
  */
 public class MenuCliente {
 
+    // Dipendenze d'istanza (Dependency Injection tramite costruttore)
+    private final GestorePrenotazioni gestorePrenotazioni;
+    private final GestoreProiezioni gestoreProiezioni;
+    private final Cliente cliente;
+
     /**
-     * Menu principale interattivo per il cliente loggato.
+     * Costruttore completo per istanziare il modulo del menù per un cliente specifico.
+     * Inietta le dipendenze dei manager di sistema necessarie al funzionamento della TUI.
      *
-     * @param cliente             Il cliente correntemente autenticato in sessione.
-     * @param gestorePrenotazioni Il gestore delle prenotazioni.
-     * @param gestoreProiezioni   Il gestore del palinsesto dei film.
+     * @param gestoreProiezioni   Il gestore del palinsesto dei film e delle sale proiezioni.
+     * @param gestorePrenotazioni Il gestore globale per la manipolazione dei record delle prenotazioni.
+     * @param cliente             L'oggetto Cliente che ha effettuato l'autenticazione nel sistema.
      */
-    public static boolean menu(Cliente cliente, GestorePrenotazioni gestorePrenotazioni, GestoreProiezioni gestoreProiezioni) {
+    public MenuCliente(GestoreProiezioni gestoreProiezioni, GestorePrenotazioni gestorePrenotazioni, Cliente cliente) {
+        this.gestoreProiezioni = gestoreProiezioni;
+        this.gestorePrenotazioni = gestorePrenotazioni;
+        this.cliente = cliente;
+    }
+
+    /**
+     * Avvia il ciclo interattivo del menù principale per l'area personale del cliente.
+     * Mostra le opzioni disponibili e smista i comandi inseriti dall'utente fino alla richiesta di disconnessione.
+     *
+     * @return true ad esecuzione terminata, segnalando l'avvenuto logout al pannello principale.
+     */
+    public boolean esegui() {
         Scanner sc = new Scanner(System.in);
         String sel;
+        boolean chiudi = false;
 
         do {
             System.out.println("\n=== AREA PERSONALE CLIENTE ===");
@@ -42,63 +63,60 @@ public class MenuCliente {
 
             switch (sel) {
                 case "1":
-                    inserisciPrenotazione(cliente, gestorePrenotazioni, gestoreProiezioni);
+                    // Chiamata al metodo d'istanza locale per l'inserimento
+                    inserisciPrenotazione();
                     break;
                 case "2":
-                    mostraPrenotazioni(cliente, gestorePrenotazioni);
+                    // Chiamata al metodo d'istanza locale per la stampa elenco
+                    mostraPrenotazioni();
                     break;
                 case "3":
-                    modificaPrenotazione(gestorePrenotazioni, gestoreProiezioni);
+                    // Chiamata al metodo d'istanza per il cambio data/ora
+                    modificaPrenotazione();
                     break;
                 case "4":
-                    cancellaPrenotazione(gestorePrenotazioni);
+                    // Chiamata al metodo d'istanza per l'eliminazione logica o fisica
+                    cancellaPrenotazione();
                     break;
                 case "X":
+                    chiudi = true;
                     System.out.println("Disconnessione effettuata con successo. Arrivederci!");
                     break;
                 default:
                     System.out.println("Opzione non valida. Riprova.");
             }
-        } while (!sel.equals("X"));
+        } while (!chiudi);
+
         return true;
     }
 
     /**
-     * Gestisce l'interazione da terminale per l'inserimento di una nuova prenotazione.
-     * Recupera il palinsesto delle proiezioni disponibili, acquisisce l'input numerico dei posti
-     * e delega l'operazione alla business logic catturando eventuali eccezioni di indisponibilità.
-     *
-     * @param cliente             L'oggetto Cliente in sessione che richiede la prenotazione.
-     * @param gPrenotazioni       Il gestore incaricato della creazione e validazione delle prenotazioni.
-     * @param gProiezioni         Il gestore incaricato del recupero delle proiezioni a palinsesto.
+     * Gestisce il flusso interattivo a terminale per l'inserimento guidato di una nuova prenotazione.
+     * Sfrutta il metodo multi-filtro del gestore proiezioni impostando un intervallo temporale dinamico di un anno
+     * a partire dalla data odierna per mostrare il palinsesto futuro. Validazione degli input integrata.
      */
-    private static void inserisciPrenotazione(Cliente cliente, GestorePrenotazioni gPrenotazioni, GestoreProiezioni gProiezioni) {
+    private void inserisciPrenotazione() {
         Scanner sc = new Scanner(System.in);
         System.out.println("\n--- NUOVA PRENOTAZIONE ---");
 
-        // Recupero dell'elenco delle proiezioni attive e non scadute a sistema
         LocalDate oggi = LocalDate.now();
         LocalDate fineAnno = oggi.plusYears(1);
-        List<Proiezione> proiezioni = gProiezioni.cercaProiezione(oggi, fineAnno);
+
+        // Interrogazione del gestore per ottenere solo le proiezioni future
+        List<Proiezione> proiezioni = gestoreProiezioni.cercaProiezione(null, null, oggi, fineAnno, -1, -1);
         if (proiezioni.isEmpty()) {
             System.out.println("Al momento non ci sono proiezioni disponibili nel cinema.");
             return;
         }
 
-        int index = 0;
-        do {
-            GestoreProiezioni.visualizzaProiezioni(proiezioni, index);
-            index += 25;
-            if (index < proiezioni.toArray().length) {
-                System.out.print("Proiezioni " + index + " su " + proiezioni.toArray().length + ". ");
-                System.out.print("Premere invio per continuare");
-                sc.nextLine();
-            }
-        } while (index < proiezioni.toArray().length);
+        // Rendering del palinsesto numerato a schermo
+        for (int i = 0; i < proiezioni.size(); i++) {
+            System.out.println("[" + i + "] " + proiezioni.get(i));
+        }
 
         System.out.print("Seleziona il numero della proiezione desiderata: ");
         try {
-            // Acquisizione controllata dell'indice della proiezione scelta
+            // Controllo preventivo dell'indice immesso
             int indice = Integer.parseInt(sc.nextLine());
             if (indice < 0 || indice >= proiezioni.size()) {
                 System.out.println("Selezione non valida.");
@@ -108,46 +126,42 @@ public class MenuCliente {
             Proiezione scelta = proiezioni.get(indice);
             System.out.print("Quanti posti desideri prenotare? ");
             int posti = Integer.parseInt(sc.nextLine());
+
             if (posti <= 0) {
                 System.out.println("Errore: Il numero di posti deve essere maggiore di zero.");
                 return;
             }
 
-            // Invocazione del metodo del gestorePrenotazioni. Se i posti in sala sono esauriti,
-            // il metodo solleverà un'eccezione
-            Prenotazione p = gPrenotazioni.creaPrenotazione(cliente, scelta, posti);
+            // Inoltro richiesta di prenotazione alla business logic passandoci il riferimento 'this.cliente'
+            Prenotazione p = gestorePrenotazioni.creaPrenotazione(this.cliente, scelta, posti);
             System.out.println("\n[Successo] Prenotazione effettuata!");
-            System.out.println(p); // Mostro prenotazione
+            System.out.println(p); // Visualizzazione riepilogativa
 
         } catch (NumberFormatException e) {
-            // Cattura i tentativi di inserimento di testo alfabetico dove sono richiesti numeri interi
+            // Intercettazione di input non numerici o caratteri testuali errati
             System.out.println("Errore: Inserisci un valore numerico valido.");
         } catch (Exception e) {
-            // Intercetta PostiEsauritiException o altre eccezioni sollevate dal gestore
+            // Cattura di violazioni sui vincoli (es. PostiEsauritiException) scaturite dal gestore
             System.out.println("Impossibile prenotare: " + e.getMessage());
         }
     }
 
     /**
-     * Recupera e stampa a video l'elenco storico di tutte le prenotazioni effettuate
-     * dal cliente attualmente loggato in sessione.
-     *
-     * @param cliente       L'oggetto Cliente di cui si vogliono esaminare i record.
-     * @param gPrenotazioni Il gestore contenente la collezione globale delle prenotazioni in memoria RAM.
+     * Interroga il gestore delle prenotazioni per filtrare ed esporre a schermo tutte le ricevute
+     * di titolarità del cliente correntemente loggato nel modulo di sessione.
      */
-    private static void mostraPrenotazioni(Cliente cliente, GestorePrenotazioni gPrenotazioni) {
+    private void mostraPrenotazioni() {
         System.out.println("\n--- LE TUE PRENOTAZIONI ---");
 
-        // Metodo gestore per filtrare le sole prenotazioni del cliente
-        List<Prenotazione> mie = gPrenotazioni.getPrenotazioniPerCliente(cliente);
+        // Richiesta di estrazione dei record filtrando per l'attributo d'istanza 'this.cliente'
+        List<Prenotazione> mie = gestorePrenotazioni.getPrenotazioniPerCliente(this.cliente);
 
-        // Se la lista restituita è vuota, notifichiamo l'assenza di record all'utente
         if (mie.isEmpty()) {
             System.out.println("Non hai ancora effettuato nessuna prenotazione.");
             return;
         }
 
-        // Stampa prenotazioni
+        // Scansione ciclica ed output strutturato
         for (Prenotazione p : mie) {
             System.out.println(p);
             System.out.println("-----------------------------------");
@@ -155,56 +169,45 @@ public class MenuCliente {
     }
 
     /**
-     * Gestisce la modifica di una prenotazione esistente.
-     * Acquisisce il codice identificativo univoco della prenotazione, ne recupera il film
-     * e permette di selezionare una nuova proiezione alternativa per lo stesso titolo.
-     *
-     * @param gPrenotazioni Il gestore deputato all'elaborazione e aggiornamento della prenotazione.
-     * @param gProiezioni   Il gestore deputato al recupero delle date alternative a palinsesto.
+     * Esegue la procedura guidata per lo slittamento temporale di una prenotazione attiva.
+     * Identifica il record originario tramite codice alfanumerico univoco, ne isola il titolo del film
+     * e permette il re-indirizzamento guidato esclusivamente verso proiezioni future dello stesso identico titolo.
      */
-    private static void modificaPrenotazione(GestorePrenotazioni gPrenotazioni, GestoreProiezioni gProiezioni) {
+    private void modificaPrenotazione() {
         Scanner sc = new Scanner(System.in);
         System.out.println("\n--- MODIFICA DATA SPETTACOLO ---");
 
-        // Acquisizione del codice alfanumerico sequenziale di 8 caratteri (es. PR000042)
         System.out.print("Inserisci il codice univoco della prenotazione da modificare (es. PR000001): ");
         String codice = sc.nextLine().trim();
 
-        // Recupero prenotazione
-        Prenotazione vecchiaPrenotazione = gPrenotazioni.cercaPrenotazionePerCodice(codice);
+        // Controllo di esistenza del codice inserito
+        Prenotazione vecchiaPrenotazione = gestorePrenotazioni.cercaPrenotazionePerCodice(codice);
         if (vecchiaPrenotazione == null) {
             System.out.println("Errore: Nessuna prenotazione trovata con il codice " + codice);
             return;
         }
 
-        // Recupero il titolo esatto del film associato alla vecchia prenotazione
+        // Estrazione selettiva del titolo del film per vincolare la ricerca successiva
         String titoloFilm = vecchiaPrenotazione.getProiezione().getFilm().getTitolo();
 
-        // Ricerca nuove Date
+        // Generazione elenco date alternative filtrando per il titolo del film
         LocalDate oggi = LocalDate.now();
         LocalDate fineAnno = oggi.plusYears(1);
-        List<Proiezione> proiezioni = gProiezioni.cercaProiezione(titoloFilm, null, oggi, fineAnno, -1, -1);
+        List<Proiezione> proiezioni = gestoreProiezioni.cercaProiezione(titoloFilm, null, oggi, fineAnno, -1, -1);
 
         if (proiezioni.isEmpty()) {
             System.out.println("Al momento non ci sono altre date future disponibili per il film: " + titoloFilm);
             return;
         }
 
-        // Visualizzazione delle possibili opzioni di cambio data/ora
+        // Stampa a video del palinsesto ristretto
         System.out.println("Seleziona la nuova data/ora per il film '" + titoloFilm + "':");
-        int index = 0;
-        do {
-            GestoreProiezioni.visualizzaProiezioni(proiezioni, index);
-            index += 25;
-            if (index < proiezioni.toArray().length) {
-                System.out.print("Proiezioni " + index + " su " + proiezioni.toArray().length + ". ");
-                System.out.print("Premere invio per continuare");
-                sc.nextLine();
-            }
-        } while (index < proiezioni.toArray().length);
+        for (int i = 0; i < proiezioni.size(); i++) {
+            System.out.println("[" + i + "] " + proiezioni.get(i));
+        }
+        System.out.print("Scegli la nuova proiezione: ");
 
         try {
-            // Controllo che l'indice sia valido
             int indice = Integer.parseInt(sc.nextLine());
             if (indice < 0 || indice >= proiezioni.size()) {
                 System.out.println("Selezione errata.");
@@ -213,35 +216,35 @@ public class MenuCliente {
 
             Proiezione nuovaProiezione = proiezioni.get(indice);
 
-            // Chiamo metodo del gestore (che gestisce già le eccezioni al meglio)
-            gPrenotazioni.modificaPrenotazione(codice, nuovaProiezione);
+            // Richiesta di allineamento nello stato del gestore
+            gestorePrenotazioni.modificaPrenotazione(codice, nuovaProiezione);
             System.out.println("[Successo] Prenotazione aggiornata con successo.");
 
         } catch (NumberFormatException e) {
             System.out.println("Errore: Input numerico non valido.");
         } catch (PrenotazioneException e) {
+            // Gestione protetta dei vincoli violati (es. tentativi di modifica a ridosso dello spettacolo)
             System.out.println("Modifica fallita: " + e.getMessage());
         }
     }
 
     /**
-     * Gestisce la cancellazione definitiva di una prenotazione tramite l'interfaccia TUI.
-     * Riceve il codice identificativo e interroga in modo protetto il gestore.
-     *
-     * @param gPrenotazioni Il gestore incaricato della rimozione del record dalla lista
+     * Provvede all'intercettazione del codice identificativo immesso da tastiera e inoltra la richiesta
+     * di cancellazione definitiva del biglietto al rispettivo gestore delle prenotazioni.
      */
-    private static void cancellaPrenotazione(GestorePrenotazioni gPrenotazioni) {
+    private void cancellaPrenotazione() {
         Scanner sc = new Scanner(System.in);
         System.out.println("\n--- CANCELLAZIONE PRENOTAZIONE ---");
         System.out.print("Inserisci il codice univoco di 8 caratteri da rimuovere: ");
         String codice = sc.nextLine().trim();
 
         try {
-            // Inoltro della richiesta di rimozione al gestore delle prenotazioni
-            gPrenotazioni.eliminaPrenotazione(codice);
+            // Delega dell'eliminazione fisica dalla lista centralizzata RAM
+            gestorePrenotazioni.eliminaPrenotazione(codice);
             System.out.println("[Successo] La prenotazione è stata cancellata correttamente.");
 
         } catch (PrenotazioneException e) {
+            // Cattura mirata in caso di codice inesistente o spettacolo già iniziato
             System.out.println("Cancellazione fallita: " + e.getMessage());
         }
     }
