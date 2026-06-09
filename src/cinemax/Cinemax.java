@@ -50,10 +50,10 @@ public class Cinemax {
                     if (utente != null) {
                         switch (utente.getRuolo()) {
                             case CLIENTE:
-                                chiudi = MenuCliente.menu((Cliente) utente, gestorePrenotazioni, gestoreProiezioni);
+                                chiudi = new MenuCliente(gestoreProiezioni, gestorePrenotazioni, (Cliente) utente).esegui();
                                 break;
                             case BIGLIETTAIO:
-                                chiudi = MenuBigliettaio.menu(gestorePrenotazioni);
+                                chiudi = new MenuBigliettaio(gestorePrenotazioni).esegui();
                                 break;
                             case PROIEZIONISTA:
                                 chiudi = new MenuProiezionista(gestoreProiezioni).esegui();

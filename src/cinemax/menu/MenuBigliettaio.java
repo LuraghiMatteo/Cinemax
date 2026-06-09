@@ -9,20 +9,37 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Gestisce l'interfaccia a riga di comando (TUI) per le funzionalità dedicate al Bigliettaio.
- * Consente di visionare il riepilogo giornaliero delle prenotazioni e di effettuare ricerche mirate.
+ * Gestisce l'interfaccia utente testuale (TUI) dedicata al personale di sportello con ruolo Bigliettaio.
+ * Classe strutturata secondo i canoni della programmazione a oggetti (OOP): incapsula il rispettivo
+ * gestore delle prenotazioni come dipendenza d'istanza per manipolare i record del database.
+ * Consente il monitoraggio in tempo reale del flusso di cassa giornaliero e l'esecuzione di ricerche storiche multicriterio.
  * * @author Matteo Luraghi - Matr: 765632 - Sede: VA
  */
 public class MenuBigliettaio {
 
+    // Dipendenza di business logic incapsulata a livello d'istanza
+    private final GestorePrenotazioni gestorePrenotazioni;
+
     /**
-     * Menu principale interattivo per l'utente loggato come Bigliettaio.
+     * Costruttore completo per l'inizializzazione del modulo menù della biglietteria.
+     * Configura l'accesso controllato ai servizi core iniettando il manager delle prenotazioni.
      *
-     * @param gestorePrenotazioni Il gestore contenente la logica e i dati delle prenotazioni.
+     * @param gestorePrenotazioni Il gestore di sistema centralizzato contenente l'archivio delle prenotazioni.
      */
-    public static boolean menu(GestorePrenotazioni gestorePrenotazioni) {
+    public MenuBigliettaio(GestorePrenotazioni gestorePrenotazioni) {
+        this.gestorePrenotazioni = gestorePrenotazioni;
+    }
+
+    /**
+     * Avvia e governa il ciclo interattivo del menù principale per l'interfaccia dello sportello.
+     * Intercetta i comandi operativi digitati dal bigliettaio, smistandoli verso le funzionalità dedicate.
+     *
+     * @return true ad esecuzione completata, notificando l'avvenuto logout del dipendente al pannello principale.
+     */
+    public boolean esegui() {
         Scanner sc = new Scanner(System.in);
         String sel;
+        boolean chiudi = false;
 
         do {
             System.out.println("\n=== SPORTELLO BIGLIETTERIA ===");
@@ -34,44 +51,51 @@ public class MenuBigliettaio {
 
             switch (sel) {
                 case "1":
-                    mostraPrenotazioniOdierne(gestorePrenotazioni);
+                    // Invocazione della procedura di rendering odierna
+                    mostraPrenotazioniOdierne();
                     break;
                 case "2":
-                    sottoMenuRicerca(gestorePrenotazioni);
+                    // Deviazione del flusso verso il sotto-pannello di ricerca storico
+                    sottoMenuRicerca();
                     break;
                 case "X":
+                    chiudi = true;
                     System.out.println("Chiusura sessione biglietteria effettuata. Arrivederci!");
                     break;
                 default:
                     System.out.println("Opzione non valida. Riprova.");
             }
-        } while (!sel.equals("X"));
+        } while (!chiudi);
         return true;
     }
 
     /**
-     * Recupera e stampa a video tutte le prenotazioni relative agli spettacoli della giornata corrente.
+     * Interroga la business logic per isolare ed esporre a terminale l'elenco completo
+     * di tutti i biglietti staccati aventi come oggetto spettacoli previsti nella giornata odierna.
+     *
+     * @see GestorePrenotazioni#visualizzaPrenotazioniOdierne()
      */
-    private static void mostraPrenotazioniOdierne(GestorePrenotazioni gPrenotazioni) {
+    private void mostraPrenotazioniOdierne() {
         System.out.println("\n--- PRENOTAZIONI NELLA DATA ODIERNA ---");
 
-        // Uso Metodo del gestorePrenotazioni per ottenere quelle in data odierna
-        List<Prenotazione> odierne = gPrenotazioni.visualizzaPrenotazioniOdierne();
+        // Estrazione record sfruttando l'attributo d'istanza 'this.gestorePrenotazioni'
+        List<Prenotazione> odierne = this.gestorePrenotazioni.visualizzaPrenotazioniOdierne();
 
-        // Se la lista è vuota, notifichiamo la situazione senza bloccare il programma
         if (odierne.isEmpty()) {
             System.out.println("Nessuna prenotazione registrata per gli spettacoli di oggi.");
             return;
         }
 
-        // visualizzazione dettagliata dei biglietti venduti per oggi
+        // Forward dell'elenco estratto al motore interno di impaginazione e rendering grafico
         stampalista(odierne);
     }
 
     /**
-     * Sotto-menu interattivo che aggrega tutti i criteri di ricerca messi a disposizione per il personale staff.
+     * Sotto-menu interattivo secondario che organizza e modula i differenti filtri di ricerca
+     * messi a disposizione dello staff per rintracciare una o più ricevute d'acquisto.
+     * Valida la coerenza formale delle stringhe temporali immesse tramite costrutti di cattura d'eccezione.
      */
-    private static void sottoMenuRicerca(GestorePrenotazioni gPrenotazioni) {
+    private void sottoMenuRicerca() {
         Scanner sc = new Scanner(System.in);
         String scelta;
 
@@ -89,7 +113,9 @@ public class MenuBigliettaio {
                 case "1":
                     System.out.print("Inserisci il codice esatto (8 caratteri): ");
                     String cod = sc.nextLine().trim();
-                    Prenotazione trovata = gPrenotazioni.cercaPrenotazionePerCodice(cod);
+
+                    // Ricerca puntuale per chiave primaria
+                    Prenotazione trovata = gestorePrenotazioni.cercaPrenotazionePerCodice(cod);
                     if (trovata != null) {
                         System.out.println("\nPrenotazione Rintracciata:");
                         System.out.println(trovata);
@@ -103,15 +129,17 @@ public class MenuBigliettaio {
                     String nome = sc.nextLine().trim();
                     System.out.print("Inserisci il cognome del cliente: ");
                     String cognome = sc.nextLine().trim();
-                    // Uso il metodo di supporto insieme a quello del gestore delle prenotazioni
-                    stampalista(gPrenotazioni.cercaPrenotazionePerCliente(nome, cognome));
+
+                    // Filtro per stringa anagrafica combinata
+                    stampalista(gestorePrenotazioni.cercaPrenotazionePerCliente(nome, cognome));
                     break;
 
                 case "3":
                     System.out.print("Inserisci il titolo del film (anche parziale): ");
                     String titolo = sc.nextLine().trim();
-                    // Delego la ricerca parziale per stringa contenuto
-                    stampalista(gPrenotazioni.cercaPrenotazionePerTitolo(titolo));
+
+                    // Estrazione tramite algoritmo di ricerca parziale (contains/indexOf)
+                    stampalista(gestorePrenotazioni.cercaPrenotazionePerTitolo(titolo));
                     break;
 
                 case "4":
@@ -124,9 +152,10 @@ public class MenuBigliettaio {
                         String fineInput = sc.nextLine().trim();
                         LocalDate fine = fineInput.isEmpty() ? null : LocalDate.parse(fineInput);
 
-                        // Delego al gestore
-                        stampalista(gPrenotazioni.cercaPrenotazionePerDate(inizio, fine));
+                        // Estrazione cronologica basata su range temporale inclusivo
+                        stampalista(gestorePrenotazioni.cercaPrenotazionePerDate(inizio, fine));
                     } catch (DateTimeParseException e) {
+                        // Protezione da crash indotti da inserimenti di stringhe non conformi allo standard ISO-8601
                         System.out.println("Errore: Formato data non coerente. Usa la struttura AAAA-MM-DD.");
                     }
                     break;
@@ -141,10 +170,13 @@ public class MenuBigliettaio {
     }
 
     /**
-     * Metodo di utilità interno per la stampa delle liste risultanti
-     * dalle ricerche, evitando ridondanze di codice
+     * Componente di utilità interna strutturato per gestire l'impaginazione controllata a blocchi della TUI.
+     * Evita la saturazione visiva del terminale visualizzando le prenotazioni in gruppi sequenziali
+     * da 25 elementi ciascuno e congelando lo scroll tramite interruzioni di input.
+     *
+     * @param risultati La lista contenente l'insieme delle prenotazioni estratte dalle query dei gestori.
      */
-    private static void stampalista(List<Prenotazione> risultati) {
+    private void stampalista(List<Prenotazione> risultati) {
         if (risultati.isEmpty()) {
             System.out.println("La ricerca non ha prodotto alcun risultato.");
             return;
@@ -154,12 +186,15 @@ public class MenuBigliettaio {
         Scanner sc = new Scanner(System.in);
         int index = 0;
         do {
+            // Invocazione del metodo delegato a gestire la logica visiva della pagina corrente
             GestorePrenotazioni.visualizzaPrenotazioni(risultati, index);
             index += 25;
+
+            // Verifica di esistenza di record residui oltre la pagina renderizzata
             if (index < risultati.toArray().length) {
                 System.out.print("Proiezioni " + index + " su " + risultati.toArray().length + ". ");
                 System.out.print("Premere invio per continuare");
-                sc.nextLine();
+                sc.nextLine(); // Blocco temporaneo dello scanner per scopi di lettura antropica
             }
         } while (index < risultati.toArray().length);
     }
