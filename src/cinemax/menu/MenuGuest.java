@@ -55,20 +55,22 @@ public class MenuGuest {
         boolean chiudi = false;
 
         do {
-            System.out.println("\nBenvenuto nel menu Guest");
+            System.out.println("\n=========================================");
+            System.out.println("               MENU GUEST                ");
+            System.out.println("=========================================");
             System.out.println("[0] Registrati");
-            System.out.println("[1] Ricerca proiezione per titolo o sotto-stringa del titolo");
+            System.out.println("[1] Ricerca proiezione per titolo");
             System.out.println("[2] Ricerca proiezione per genere");
             System.out.println("[3] Ricerca proiezione per prezzo");
             System.out.println("[4] Ricerca proiezione per data");
             System.out.println("[5] Ricerca proiezione mix");
             System.out.println("[X] Esci");
+            System.out.println("=========================================");
             System.out.print("Scegli un'opzione: ");
             sel = sc.nextLine();
 
             switch (sel.toUpperCase()) {
                 case "0":
-                    System.out.println("Inserimento dati per la registrazione");
                     registraUtente();
                     break;
                 case "1":
@@ -90,7 +92,7 @@ public class MenuGuest {
                     chiudi = true;
                     break;
                 default:
-                    System.err.println("Opzione non valida. Riprova");
+                    System.out.println("\n\u001B[31m[ERRORE] Opzione non valida. Riprova.\u001B[0m");
             }
         } while (!chiudi);
 
@@ -108,44 +110,47 @@ public class MenuGuest {
         LocalDate dataNascita = null;
         boolean datiValidi = false;
 
+        System.out.println("\n-----------------------------------------");
+        System.out.println("          REGISTRAZIONE CLIENTE          ");
+        System.out.println("-----------------------------------------");
         do {
-            System.out.println("Inserisci il nome: ");
+            System.out.print("Inserisci il nome: ");
             nome = sc.nextLine().trim();
 
-            System.out.println("Inserisci il cognome: ");
+            System.out.print("Inserisci il cognome: ");
             cognome = sc.nextLine().trim();
 
-            System.out.println("Inserisci lo username: ");
+            System.out.print("Inserisci lo username: ");
             username = sc.nextLine().trim();
 
-            System.out.println("Inserisci la password: ");
+            System.out.print("Inserisci la password: ");
             password = sc.nextLine().trim();
 
-            System.out.println("Inserisci il luogo domicilio: ");
+            System.out.print("Inserisci il luogo domicilio: ");
             luogoDomicilio = sc.nextLine().trim();
 
             if (nome.isEmpty() || cognome.isEmpty() || username.isEmpty() || password.isEmpty()
                     || luogoDomicilio.isEmpty()) {
-                System.out.println("Errore: Tutti i campi testuali sono obbligatori. Ricomincia la compilazione.");
+                System.out.println("\u001B[31m[ERRORE] Tutti i campi testuali sono obbligatori. Ricomincia la compilazione.\u001B[0m");
                 continue;
             }
 
-            System.out.println("Inserisci la data di nascita (formato AAAA-MM-DD, es. 1995-05-24)");
-            System.out.print("Campo facoltativo, se non vuoi inserirlo premi invio: ");
+            System.out.println("\nInserisci la data di nascita (formato AAAA-MM-DD, es. 1995-05-24)");
+            System.out.print("Campo facoltativo (premi INVIO per omettere): ");
             String dataString = sc.nextLine().trim();
             try {
                 if (!dataString.isEmpty()) {
                     dataNascita = LocalDate.parse(dataString);
 
                     if (dataNascita.isAfter(LocalDate.now())) {
-                        System.out.println("Errore: La data di nascita non può essere nel futuro.");
+                        System.out.println("\u001B[31m[ERRORE] La data di nascita non può essere nel futuro.\u001B[0m");
                         continue;
                     }
                 }
                 datiValidi = true;
 
             } catch (DateTimeParseException e) {
-                System.out.println("Errore: Formato data non valido. Utilizzare rigorosamente il pattern AAAA-MM-DD.");
+                System.out.println("\u001B[31m[ERRORE] Formato data non valido. Utilizzare rigorosamente il pattern AAAA-MM-DD.\u001B[0m");
             }
         } while (!datiValidi);
 
@@ -156,14 +161,14 @@ public class MenuGuest {
         try {
             gestoreUtenti.registraCliente(nuovoCliente);
             System.out.println(
-                    "\n[Successo] Registrazione completata! Ora puoi effettuare il login con lo username: " + username);
+                    "\n[OK] Registrazione completata! Ora puoi effettuare il login con lo username: " + username);
 
         } catch (UtenteUsernameException e) {
-            System.out.println("\n[Registrazione Fallita]: " + e.getMessage());
+            System.out.println("\n\u001B[31m[ERRORE] Registrazione fallita: " + e.getMessage() + "\u001B[0m");
 
         } catch (Exception e) {
             // Gestione di sicurezza per errori imprevisti generici
-            System.out.println("\n[Errore di Sistema]: Impossibile completare l'operazione. Riprova più tardi.");
+            System.out.println("\n\u001B[31m[ERRORE] Impossibile completare l'operazione. Riprova più tardi.\u001B[0m");
         }
     }
 
@@ -175,10 +180,13 @@ public class MenuGuest {
         Scanner sc = new Scanner(System.in);
         String sel = "";
         do {
+            System.out.println("\n-----------------------------------------");
+            System.out.println("           RICERCA PER TITOLO            ");
+            System.out.println("-----------------------------------------");
             System.out.print("Inserisci il titolo del film: ");
             String titolo = sc.nextLine();
             if (titolo.isBlank()) {
-                System.err.println("Il titolo non può essere vuoto");
+                System.out.println("\u001B[31m[ERRORE] Il titolo non può essere vuoto.\u001B[0m");
             } else {
                 cercaTitolo(titolo);
                 sel = "esci";
@@ -194,20 +202,24 @@ public class MenuGuest {
         Scanner sc = new Scanner(System.in);
         String sel = "";
         do {
+            System.out.println("\n-----------------------------------------");
+            System.out.println("           RICERCA PER GENERE            ");
+            System.out.println("-----------------------------------------");
+            System.out.print("Generi disponibili: ");
             for (Genere g : Genere.values()) {
                 System.out.print(g + " ");
             }
-            System.out.print("\nInserisci il genere del film tra questi: ");
+            System.out.print("\nInserisci il genere del film: ");
             String genere = sc.nextLine().toUpperCase().trim();
             if (genere.isBlank()) {
-                System.err.println("Il genere non può essere vuoto");
+                System.out.println("\u001B[31m[ERRORE] Il genere non può essere vuoto.\u001B[0m");
             } else {
                 try {
                     Genere g = Genere.valueOf(genere);
                     cercaGenere(g);
                     sel = "esci";
                 } catch (IllegalArgumentException e) {
-                    System.err.println("Il genere inserito non esiste. Riprova");
+                    System.out.println("\u001B[31m[ERRORE] Il genere inserito non esiste. Riprova.\u001B[0m");
                 }
             }
         } while (!sel.equals("esci"));
@@ -221,46 +233,50 @@ public class MenuGuest {
         Scanner sc = new Scanner(System.in);
         String sel = "";
         do {
-            System.out.println("[1] Prezzo preciso");
-            System.out.println("[2] Range prezzo");
-            System.out.print("Scegli cosa vuoi fare: ");
+            System.out.println("\n-----------------------------------------");
+            System.out.println("           RICERCA PER PREZZO            ");
+            System.out.println("-----------------------------------------");
+            System.out.println("[1] Cerca prezzo esatto");
+            System.out.println("[2] Cerca fascia di prezzo");
+            System.out.println("-----------------------------------------");
+            System.out.print("Scegli un'opzione: ");
             sel = sc.nextLine();
             switch (sel) {
                 case "1":
                     System.out.print("Inserisci il prezzo del biglietto: ");
                     try {
-                        double prezzo = Double.parseDouble(sc.next().replace(',', '.'));
+                        double prezzo = Double.parseDouble(sc.nextLine().replace(',', '.'));
                         if (prezzo <= 0) {
-                            System.err.println("Il prezzo deve essere maggiore di 0");
+                            System.out.println("\u001B[31m[ERRORE] Il prezzo deve essere maggiore di 0.\u001B[0m");
                         } else {
                             cercaPrezzo(prezzo, prezzo);
                             sel = "esci";
                         }
                     } catch (NumberFormatException e) {
-                        System.err.println("Formato non valido.");
+                        System.out.println("\u001B[31m[ERRORE] Formato non valido.\u001B[0m");
                     }
                     break;
                 case "2":
                     try {
                         double min, max;
                         System.out.print("Inserisci il prezzo minimo: ");
-                        min = Double.parseDouble(sc.next().replace(',', '.'));
+                        min = Double.parseDouble(sc.nextLine().replace(',', '.'));
                         System.out.print("Inserisci il prezzo massimo: ");
-                        max = Double.parseDouble(sc.next().replace(',', '.'));
+                        max = Double.parseDouble(sc.nextLine().replace(',', '.'));
                         if (min < 0 || min > max) {
-                            System.err.println("Il prezzo minimo deve essere >= 0 e minore o uguale al prezzo massimo");
+                            System.out.println("\u001B[31m[ERRORE] Il prezzo minimo deve essere >= 0 e minore o uguale al prezzo massimo.\u001B[0m");
                         } else {
                             cercaPrezzo(min, max);
                             sel = "esci";
                         }
                     } catch (NumberFormatException e) {
-                        System.err.println("Formato non valido.");
+                        System.out.println("\u001B[31m[ERRORE] Formato non valido.\u001B[0m");
                     } catch (CostoNonValidoException e) {
-                        System.err.println(e.getMessage());
+                        System.out.println("\u001B[31m[ERRORE] " + e.getMessage() + "\u001B[0m");
                     }
                     break;
                 default:
-                    System.err.println("Opzione non valida. Riprova");
+                    System.out.println("\u001B[31m[ERRORE] Opzione non valida. Riprova.\u001B[0m");
             }
         } while (!sel.equals("esci"));
     }
@@ -273,9 +289,13 @@ public class MenuGuest {
         Scanner sc = new Scanner(System.in);
         String sel = "";
         do {
-            System.out.println("[1] Data precisa");
-            System.out.println("[2] Range data");
-            System.out.print("Scegli cosa vuoi fare: ");
+            System.out.println("\n-----------------------------------------");
+            System.out.println("            RICERCA PER DATA             ");
+            System.out.println("-----------------------------------------");
+            System.out.println("[1] Cerca data precisa");
+            System.out.println("[2] Cerca intervallo di date");
+            System.out.println("-----------------------------------------");
+            System.out.print("Scegli un'opzione: ");
             sel = sc.nextLine();
             switch (sel) {
                 case "1":
@@ -286,8 +306,7 @@ public class MenuGuest {
                         cercaData(data, data);
                         sel = "esci";
                     } catch (DateTimeParseException e) {
-                        System.out.println(
-                                "Errore: Formato data non valido. Utilizzare rigorosamente il pattern AAAA-MM-DD.");
+                        System.out.println("\u001B[31m[ERRORE] Formato data non valido. Usa il pattern AAAA-MM-DD.\u001B[0m");
                     }
                     break;
                 case "2":
@@ -302,15 +321,14 @@ public class MenuGuest {
                             cercaData(data1, data2);
                             sel = "esci";
                         } else {
-                            System.err.println("La data inizio deve essere minore o uguale della data di fine");
+                            System.out.println("\u001B[31m[ERRORE] La data inizio deve essere minore o uguale della data di fine.\u001B[0m");
                         }
                     } catch (DateTimeParseException e) {
-                        System.out.println(
-                                "Errore: Formato data non valido. Utilizzare rigorosamente il pattern AAAA-MM-DD.");
+                        System.out.println("\u001B[31m[ERRORE] Formato data non valido. Usa il pattern AAAA-MM-DD.\u001B[0m");
                     }
                     break;
                 default:
-                    System.err.println("Opzione non valida. Riprova");
+                    System.out.println("\u001B[31m[ERRORE] Opzione non valida. Riprova.\u001B[0m");
             }
         } while (!sel.equals("esci"));
     }
@@ -330,12 +348,17 @@ public class MenuGuest {
             double prezzoMin = -1;
             double prezzoMax = -1;
 
+            System.out.println("\n-----------------------------------------");
+            System.out.println("            RICERCA COMBINATA            ");
+            System.out.println("-----------------------------------------");
+
             System.out.print("Inserisci il titolo (vuoto per ignorare): ");
             String titoloInput = sc.nextLine().trim();
             if (!titoloInput.isEmpty()) {
                 titolo = titoloInput;
             }
 
+            System.out.print("Generi disponibili: ");
             for (Genere g : Genere.values()) {
                 System.out.print(g + " ");
             }
@@ -345,7 +368,7 @@ public class MenuGuest {
                 try {
                     genere = Genere.valueOf(genereInput.toUpperCase());
                 } catch (IllegalArgumentException e) {
-                    System.err.println("Genere inesistente: " + genereInput);
+                    System.out.println("\u001B[31m[ERRORE] Genere inesistente: " + genereInput + "\u001B[0m");
                     return;
                 }
             }
@@ -356,14 +379,14 @@ public class MenuGuest {
                 System.out.print("Inserisci data fine (AAAA-MM-DD): ");
                 String dataFinStr = sc.nextLine().trim();
                 if (dataFinStr.isEmpty()) {
-                    System.err.println("La data di fine non può essere vuota se la data di inizio è presente.");
+                    System.out.println("\u001B[31m[ERRORE] La data di fine non può essere vuota se la data di inizio è presente.\u001B[0m");
                     return;
                 }
                 try {
                     dataIn = LocalDate.parse(dataInStr);
                     dataFin = LocalDate.parse(dataFinStr);
                 } catch (DateTimeParseException e) {
-                    System.err.println("Formato data non valido. Usa AAAA-MM-DD.");
+                    System.out.println("\u001B[31m[ERRORE] Formato data non valido. Usa AAAA-MM-DD.\u001B[0m");
                     return;
                 }
             }
@@ -374,14 +397,14 @@ public class MenuGuest {
                 System.out.print("Inserisci prezzo massimo: ");
                 String prezzoMaxStr = sc.nextLine().trim();
                 if (prezzoMaxStr.isEmpty()) {
-                    System.err.println("Il prezzo massimo non può essere vuoto se il minimo è presente.");
+                    System.out.println("\u001B[31m[ERRORE] Il prezzo massimo non può essere vuoto se il minimo è presente.\u001B[0m");
                     return;
                 }
                 try {
                     prezzoMin = Double.parseDouble(prezzoMinStr.replace(',', '.'));
                     prezzoMax = Double.parseDouble(prezzoMaxStr.replace(',', '.'));
                 } catch (NumberFormatException e) {
-                    System.err.println("Prezzo non valido. Inserisci un numero.");
+                    System.out.println("\u001B[31m[ERRORE] Prezzo non valido. Inserisci un numero.\u001B[0m");
                     return;
                 }
             }
@@ -390,7 +413,7 @@ public class MenuGuest {
                 cercaMix(titolo, genere, dataIn, dataFin, prezzoMin, prezzoMax);
                 sel = "esci";
             } catch (RuntimeException e) {
-                System.err.println("Errore nella ricerca mix: " + e.getMessage());
+                System.out.println("\u001B[31m[ERRORE] Errore nella ricerca mix: " + e.getMessage() + "\u001B[0m");
             }
         } while (!sel.equals("esci"));
     }
@@ -409,13 +432,12 @@ public class MenuGuest {
                 gestoreProiezioni.visualizzaProiezioni(valide, index);
                 index += 25;
                 if (index < valide.size()) {
-                    System.out.print("Proiezioni " + index + " su " + valide.size() + ". ");
-                    System.out.print("Premere invio per continuare");
+                    System.out.print("\n--> Mostrate " + index + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
                     sc.nextLine();
                 }
             } while (index < valide.size());
         } else {
-            System.err.println("non ci sono proiezioni con questo titolo: " + titolo);
+            System.out.println("[INFO] Non ci sono proiezioni con questo titolo: " + titolo);
         }
     }
 
@@ -433,13 +455,12 @@ public class MenuGuest {
                 gestoreProiezioni.visualizzaProiezioni(valide, index);
                 index += 25;
                 if (index < valide.size()) {
-                    System.out.print("Proiezioni " + index + " su " + valide.size() + ". ");
-                    System.out.print("Premere invio per continuare");
+                    System.out.print("\n--> Mostrate " + index + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
                     sc.nextLine();
                 }
             } while (index < valide.size());
         } else {
-            System.err.println("non ci sono proiezioni con questo genere: " + genere);
+            System.out.println("[INFO] Non ci sono proiezioni con questo genere: " + genere);
         }
     }
 
@@ -458,16 +479,15 @@ public class MenuGuest {
                 gestoreProiezioni.visualizzaProiezioni(valide, index);
                 index += 25;
                 if (index < valide.size()) {
-                    System.out.print("Proiezioni " + index + " su " + valide.size() + ". ");
-                    System.out.print("Premere invio per continuare");
+                    System.out.print("\n--> Mostrate " + index + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
                     sc.nextLine();
                 }
             } while (index < valide.size());
         } else {
             if (min == max) {
-                System.err.println("non ci sono proiezioni con questo prezzo: " + min);
+                System.out.println("[INFO] Non ci sono proiezioni con questo prezzo: " + min);
             } else {
-                System.err.println("non ci sono proiezioni in questo range: " + min + ", " + max);
+                System.out.println("[INFO] Non ci sono proiezioni in questo range: " + min + " - " + max);
             }
         }
     }
@@ -487,15 +507,14 @@ public class MenuGuest {
                 gestoreProiezioni.visualizzaProiezioni(valide, index);
                 index += 25;
                 if (index < valide.size()) {
-                    System.out.print("Proiezioni " + index + " su " + valide.size() + ". ");
-                    System.out.print("Premere invio per continuare");
+                    System.out.print("\n--> Mostrate " + index + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
                     sc.nextLine();
                 }
             } while (index < valide.size());
         } else if (dataIn.isEqual(dataFin)) {
-            System.err.println("Non ci sono proiezioni in questa data: " + dataIn);
+            System.out.println("[INFO] Non ci sono proiezioni in questa data: " + dataIn);
         } else {
-            System.err.println("Non ci sono proiezioni in questo range: " + dataIn + ", " + dataFin);
+            System.out.println("[INFO] Non ci sono proiezioni in questo range: " + dataIn + " - " + dataFin);
         }
     }
 
@@ -518,13 +537,12 @@ public class MenuGuest {
                 gestoreProiezioni.visualizzaProiezioni(valide, index);
                 index += 25;
                 if (index < valide.size()) {
-                    System.out.print("Proiezioni " + index + " su " + valide.size() + ". ");
-                    System.out.print("Premere invio per continuare");
+                    System.out.print("\n--> Mostrate " + index + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
                     sc.nextLine();
                 }
             } while (index < valide.size());
         } else {
-            System.err.println("Non ci sono proiezioni con i filtri selezionati.");
+            System.out.println("[INFO] Non ci sono proiezioni con i filtri selezionati.");
         }
     }
 }

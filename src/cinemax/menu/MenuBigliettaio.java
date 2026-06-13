@@ -66,7 +66,7 @@ public class MenuBigliettaio {
                     System.out.println("\n[OK] Chiusura sessione biglietteria effettuata. Arrivederci!");
                     break;
                 default:
-                    System.out.println("\n[ERRORE] Opzione non valida. Riprova.");
+                    System.out.println("\n\u001B[31m[ERRORE] Opzione non valida. Riprova.\u001B[0m");
             }
         } while (!chiudi);
         return true;
@@ -164,7 +164,7 @@ public class MenuBigliettaio {
                         stampalista(gestorePrenotazioni.cercaPrenotazionePerDate(inizio, fine));
                     } catch (DateTimeParseException e) {
                         // Protezione da crash indotti da inserimenti di stringhe non conformi allo standard ISO-8601
-                        System.out.println("[ERRORE] Formato data non coerente. Usa la struttura AAAA-MM-DD.");
+                        System.out.println("\u001B[31m[ERRORE] Formato data non coerente. Usa la struttura AAAA-MM-DD.\u001B[0m");
                     }
                     break;
 
@@ -172,7 +172,7 @@ public class MenuBigliettaio {
                     break;
 
                 default:
-                    System.out.println("[ERRORE] Criterio non riconosciuto.");
+                    System.out.println("\u001B[31m[ERRORE] Criterio non riconosciuto.\u001B[0m");
             }
         } while (!scelta.equals("X"));
     }

@@ -83,7 +83,7 @@ public class MenuCliente {
                     System.out.println("\n[OK] Disconnessione effettuata con successo. Arrivederci!");
                     break;
                 default:
-                    System.out.println("\n[ERRORE] Opzione non valida. Riprova.");
+                    System.out.println("\n\u001B[31m[ERRORE] Opzione non valida. Riprova.\u001B[0m");
             }
         } while (!chiudi);
 
@@ -119,7 +119,7 @@ public class MenuCliente {
             // Controllo preventivo dell'indice immesso
             int indice = Integer.parseInt(sc.nextLine());
             if (indice < 0 || indice >= proiezioni.size()) {
-                System.out.println("[ERRORE] Selezione non valida.");
+                System.out.println("\u001B[31m[ERRORE] Selezione non valida.\u001B[0m");
                 return;
             }
 
@@ -128,7 +128,7 @@ public class MenuCliente {
             int posti = Integer.parseInt(sc.nextLine());
 
             if (posti <= 0) {
-                System.out.println("[ERRORE] Il numero di posti deve essere maggiore di zero.");
+                System.out.println("\u001B[31m[ERRORE] Il numero di posti deve essere maggiore di zero.\u001B[0m");
                 return;
             }
 
@@ -138,9 +138,9 @@ public class MenuCliente {
             System.out.println(p);
 
         } catch (NumberFormatException e) {
-            System.out.println("[ERRORE] Inserisci un valore numerico valido.");
+                System.out.println("\u001B[31m[ERRORE] Inserisci un valore numerico valido.\u001B[0m");
         } catch (Exception e) {
-            System.out.println("[ERRORE] Impossibile prenotare: " + e.getMessage());
+                System.out.println("\u001B[31m[ERRORE] Impossibile prenotare: " + e.getMessage() + "\u001B[0m");
         }
     }
 
@@ -182,7 +182,7 @@ public class MenuCliente {
         // Controllo di esistenza del codice inserito
         Prenotazione vecchiaPrenotazione = gestorePrenotazioni.cercaPrenotazionePerCodice(codice);
         if (vecchiaPrenotazione == null) {
-            System.out.println("[ERRORE] Nessuna prenotazione trovata con il codice " + codice);
+            System.out.println("\u001B[31m[ERRORE] Nessuna prenotazione trovata con il codice " + codice + "\u001B[0m");
             return;
         }
 
@@ -208,7 +208,7 @@ public class MenuCliente {
         try {
             int indice = Integer.parseInt(sc.nextLine());
             if (indice < 0 || indice >= proiezioni.size()) {
-                System.out.println("[ERRORE] Selezione non valida.");
+                System.out.println("\u001B[31m[ERRORE] Selezione non valida.\u001B[0m");
                 return;
             }
 
@@ -219,9 +219,9 @@ public class MenuCliente {
             System.out.println("[OK] Prenotazione aggiornata con successo.");
 
         } catch (NumberFormatException e) {
-            System.out.println("[ERRORE] Input numerico non valido.");
+            System.out.println("\u001B[31m[ERRORE] Input numerico non valido.\u001B[0m");
         } catch (PrenotazioneException e) {
-            System.out.println("[ERRORE] Modifica fallita: " + e.getMessage());
+            System.out.println("\u001B[31m[ERRORE] Modifica fallita: " + e.getMessage() + "\u001B[0m");
         }
     }
 
@@ -242,7 +242,7 @@ public class MenuCliente {
             System.out.println("[OK] La prenotazione è stata cancellata correttamente.");
 
         } catch (PrenotazioneException e) {
-            System.out.println("[ERRORE] Cancellazione fallita: " + e.getMessage());
+            System.out.println("\u001B[31m[ERRORE] Cancellazione fallita: " + e.getMessage() + "\u001B[0m");
         }
     }
 

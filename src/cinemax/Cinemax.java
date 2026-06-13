@@ -8,6 +8,7 @@ import cinemax.menu.MenuCliente;
 import cinemax.menu.MenuGuest;
 import cinemax.menu.MenuProiezionista;
 import cinemax.modelli.Cliente;
+import cinemax.modelli.Proiezionista;
 import cinemax.modelli.Utente;
 
 import java.util.Scanner;
@@ -72,13 +73,13 @@ public class Cinemax {
                                 chiudi = new MenuBigliettaio(gestorePrenotazioni).esegui();
                                 break;
                             case PROIEZIONISTA:
-                                chiudi = new MenuProiezionista(gestoreProiezioni).esegui();
+                                chiudi = new MenuProiezionista(gestoreProiezioni, (Proiezionista) utente).esegui();
                                 break;
                             default:
-                                System.out.println("Ruolo di sistema non riconosciuto.");
+                                System.out.println("\u001B[31m[ERRORE] Ruolo di sistema non riconosciuto.\u001B[0m");
                         }
                     } else {
-                        System.out.println("Errore: Credenziali non valide. Se non sei registrato, seleziona l'opzione [3].");
+                        System.out.println("\u001B[31m[ERRORE] Credenziali non valide. Se non sei registrato, seleziona l'opzione [3].\u001B[0m");
                     }
                     break;
                 case "2":
@@ -92,7 +93,7 @@ public class Cinemax {
                     break;
 
                 default:
-                    System.err.println("Comando non valido. Riprova");
+                    System.out.println("\u001B[31m[ERRORE] Comando non valido. Riprova.\u001B[0m");
             }
 
         } while (!sel.equals("X") && !chiudi);

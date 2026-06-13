@@ -4,6 +4,7 @@ import cinemax.gestori.GestoreProiezioni;
 import cinemax.modelli.Film;
 import cinemax.modelli.Genere;
 import cinemax.modelli.Proiezione;
+import cinemax.modelli.Proiezionista;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,15 +27,18 @@ import java.util.Scanner;
 public class MenuProiezionista {
 
     private final GestoreProiezioni gestoreProiezioni;
+    private final Proiezionista proiezionista;
 
     /**
      * Costruttore completo della classe MenuProiezionista.
-     * Inietta la dipendenza del gestore proiezioni necessaria all'esecuzione delle query e dei comandi.
+     * Inietta la dipendenza del gestore proiezioni e il profilo del proiezionista.
      *
      * @param gestoreProiezioni Il gestore globale delle proiezioni di sistema.
+     * @param proiezionista     L'utente con ruolo Proiezionista autenticato.
      */
-    public MenuProiezionista(GestoreProiezioni gestoreProiezioni) {
+    public MenuProiezionista(GestoreProiezioni gestoreProiezioni, Proiezionista proiezionista) {
         this.gestoreProiezioni = gestoreProiezioni;
+        this.proiezionista = proiezionista;
     }
 
     /**
@@ -50,14 +54,18 @@ public class MenuProiezionista {
         boolean chiudi = false;
         
         do {
-            System.out.println("\nBenvenuto nel menu Proiezionista");
+            System.out.println("\n=========================================");
+            System.out.println("            AREA PROIEZIONISTA           ");
+            System.out.println("=========================================");
+            System.out.println("Benvenuto, " + proiezionista.getNome() + " " + proiezionista.getCognome() + "!");
             System.out.println("[1] Inserire un film e le sue proiezioni");
             System.out.println("[2] Modificare la data di una proiezione");
             System.out.println("[3] Eliminare una proiezione");
-            System.out.println("[X] Logout");
+            System.out.println("[X] Esci (Logout)");
+            System.out.println("=========================================");
             System.out.print("Scegli un'opzione: ");
             sel = sc.nextLine();
-
+ 
             switch (sel.toUpperCase()) {
                 case "1":
                     inserisciFilmEProiezioni();
@@ -70,9 +78,10 @@ public class MenuProiezionista {
                     break;
                 case "X":
                     chiudi = true;
+                    System.out.println("\n[OK] Chiusura sessione proiezionista effettuata. Arrivederci!");
                     break;
                 default:
-                    System.err.println("Opzione non valida. Riprova");
+                    System.out.println("\n\u001B[31m[ERRORE] Opzione non valida. Riprova.\u001B[0m");
             }
         } while (!chiudi);
 
@@ -93,14 +102,16 @@ public class MenuProiezionista {
      */
     private void inserisciFilmEProiezioni() {
         Scanner sc = new Scanner(System.in);
-        System.out.println("\n--- Inserimento nuovo Film ---");
+        System.out.println("\n-----------------------------------------");
+        System.out.println("         INSERIMENTO NUOVO FILM          ");
+        System.out.println("-----------------------------------------");
         
         String titolo;
         do {
             System.out.print("Titolo: ");
             titolo = sc.nextLine();
             if (titolo.isBlank()) {
-                System.err.println("Il titolo non può essere vuoto o composto solo da spazi. Riprova.");
+                System.out.println("\u001B[31m[ERRORE] Il titolo non può essere vuoto o composto solo da spazi. Riprova.\u001B[0m");
             }
         } while (titolo.isBlank());
 
@@ -115,7 +126,7 @@ public class MenuProiezionista {
             try {
                 genere = Genere.valueOf(genereStr.toUpperCase().replace('-', '_'));
             } catch (IllegalArgumentException e) {
-                System.err.println("Genere non valido. Riprova.");
+                System.out.println("\u001B[31m[ERRORE] Genere non valido. Riprova.\u001B[0m");
             }
         } while (genere == null);
 
@@ -124,7 +135,7 @@ public class MenuProiezionista {
             System.out.print("Regista: ");
             regista = sc.nextLine();
             if (regista.isBlank()) {
-                System.err.println("Il nome del regista non può essere vuoto. Riprova.");
+                System.out.println("\u001B[31m[ERRORE] Il nome del regista non può essere vuoto. Riprova.\u001B[0m");
             }
         } while (regista.isBlank());
 
@@ -134,11 +145,11 @@ public class MenuProiezionista {
             try {
                 anno = Integer.parseInt(sc.nextLine().trim());
                 if (anno < 1800 || anno > 2100) {
-                    System.err.println("Anno non realistico. Riprova.");
+                    System.out.println("\u001B[31m[ERRORE] Anno non realistico. Riprova.\u001B[0m");
                     anno = -1;
                 }
             } catch (NumberFormatException e) {
-                System.err.println("Formato anno non valido. Inserisci un numero intero.");
+                System.out.println("\u001B[31m[ERRORE] Formato anno non valido. Inserisci un numero intero.\u001B[0m");
             }
         } while (anno == -1);
 
@@ -148,11 +159,11 @@ public class MenuProiezionista {
             try {
                 durata = Integer.parseInt(sc.nextLine().trim());
                 if (durata <= 0) {
-                    System.err.println("La durata deve essere maggiore di 0. Riprova.");
+                    System.out.println("\u001B[31m[ERRORE] La durata deve essere maggiore di 0. Riprova.\u001B[0m");
                     durata = -1;
                 }
             } catch (NumberFormatException e) {
-                System.err.println("Formato durata non valido. Inserisci un numero intero.");
+                System.out.println("\u001B[31m[ERRORE] Formato durata non valido. Inserisci un numero intero.\u001B[0m");
             }
         } while (durata == -1);
 
@@ -162,17 +173,20 @@ public class MenuProiezionista {
             try {
                 etaMinima = Integer.parseInt(sc.nextLine().trim());
                 if (etaMinima < 0) {
-                    System.err.println("L'età minima non può essere negativa. Riprova.");
+                    System.out.println("\u001B[31m[ERRORE] L'età minima non può essere negativa. Riprova.\u001B[0m");
                     etaMinima = -1;
                 }
             } catch (NumberFormatException e) {
-                System.err.println("Formato età non valido. Inserisci un numero intero.");
+                System.out.println("\u001B[31m[ERRORE] Formato età non valido. Inserisci un numero intero.\u001B[0m");
             }
         } while (etaMinima == -1);
 
         Film film = new Film(titolo, genere, regista, anno, durata, etaMinima);
 
-        System.out.println("\n--- Inserimento Proiezione per " + titolo + " ---");
+        System.out.println("\n-----------------------------------------");
+        System.out.println("          INSERIMENTO PROIEZIONE         ");
+        System.out.println("-----------------------------------------");
+        System.out.println("[INFO] Associazione proiezione per il film: " + titolo);
         
         String dataStr = "";
         boolean dataValida = false;
@@ -183,7 +197,7 @@ public class MenuProiezionista {
                 LocalDate.parse(dataStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 dataValida = true;
             } catch (DateTimeParseException e) {
-                System.err.println("Formato data non valido. Riprova.");
+                System.out.println("\u001B[31m[ERRORE] Formato data non valido. Riprova.\u001B[0m");
             }
         } while (!dataValida);
 
@@ -195,7 +209,7 @@ public class MenuProiezionista {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 dataOra = LocalDateTime.parse(dataStr + " " + oraStr, formatter);
             } catch (DateTimeParseException e) {
-                System.err.println("Formato ora non valido. Riprova.");
+                System.out.println("\u001B[31m[ERRORE] Formato ora non valido. Riprova.\u001B[0m");
             }
         } while (dataOra == null);
 
@@ -205,19 +219,19 @@ public class MenuProiezionista {
             try {
                 costo = Double.parseDouble(sc.nextLine().replace(',', '.').trim());
                 if (costo < 0) {
-                    System.err.println("Il costo non può essere negativo. Riprova.");
+                    System.out.println("\u001B[31m[ERRORE] Il costo non può essere negativo. Riprova.\u001B[0m");
                     costo = -1;
                 }
             } catch (NumberFormatException e) {
-                System.err.println("Formato costo non valido. Inserisci un numero.");
+                System.out.println("\u001B[31m[ERRORE] Formato costo non valido. Inserisci un numero.\u001B[0m");
             }
         } while (costo == -1);
 
         Proiezione proiezione = new Proiezione(dataOra, film, costo);
         if (gestoreProiezioni.aggiungiProiezione(proiezione)) {
-            System.out.println("Proiezione aggiunta con successo.");
+            System.out.println("[OK] Proiezione aggiunta con successo.");
         } else {
-            System.err.println("Errore: la proiezione potrebbe essere già presente nel palinsesto.");
+            System.out.println("\u001B[31m[ERRORE] La proiezione potrebbe essere già presente nel palinsesto.\u001B[0m");
         }
     }
 
@@ -240,7 +254,7 @@ public class MenuProiezionista {
             
             valide = gestoreProiezioni.cercaProiezione(titolo);
             if (valide.isEmpty()) {
-                System.err.println("Nessuna proiezione trovata con questo titolo. Riprova.");
+                System.out.println("[INFO] Nessuna proiezione trovata con questo titolo. Riprova.");
             }
         } while (valide.isEmpty());
         
@@ -249,23 +263,22 @@ public class MenuProiezionista {
             GestoreProiezioni.visualizzaProiezioni(valide, pageIndex);
             pageIndex += 25;
             if (pageIndex < valide.size()) {
-                System.out.print("Proiezioni " + pageIndex + " su " + valide.size() + ". ");
-                System.out.print("Premere invio per continuare");
+                System.out.print("\n--> Mostrate " + pageIndex + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
                 sc.nextLine();
             }
         } while (pageIndex < valide.size());
         
         int index = -1;
         do {
-            System.out.print("Seleziona l'indice della proiezione: ");
+            System.out.print("\nSeleziona l'indice della proiezione desiderata: ");
             try {
                 index = Integer.parseInt(sc.nextLine().trim());
                 if (index < 0 || index >= valide.size()) {
-                    System.err.println("Indice fuori range. Inserisci un numero tra 0 e " + (valide.size() - 1) + ".");
+                    System.out.println("\u001B[31m[ERRORE] Indice fuori range. Inserisci un numero tra 0 e " + (valide.size() - 1) + ".\u001B[0m");
                     index = -1;
                 }
             } catch (NumberFormatException e) {
-                System.err.println("Formato indice non valido. Inserisci un numero intero.");
+                System.out.println("\u001B[31m[ERRORE] Formato indice non valido. Inserisci un numero intero.\u001B[0m");
             }
         } while (index == -1);
         
@@ -278,7 +291,9 @@ public class MenuProiezionista {
      */
     private void modificaProiezione() {
         Scanner sc = new Scanner(System.in);
-        System.out.println("\n--- Modifica Data Proiezione ---");
+        System.out.println("\n-----------------------------------------");
+        System.out.println("        MODIFICA DATA PROIEZIONE         ");
+        System.out.println("-----------------------------------------");
         Proiezione p = selezionaProiezione();
         if (p != null) {
             String dataStr = "";
@@ -290,7 +305,7 @@ public class MenuProiezionista {
                     LocalDate.parse(dataStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     dataValida = true;
                 } catch (DateTimeParseException e) {
-                    System.err.println("Formato data non valido. Riprova.");
+                    System.out.println("\u001B[31m[ERRORE] Formato data non valido. Riprova.\u001B[0m");
                 }
             } while (!dataValida);
 
@@ -302,14 +317,14 @@ public class MenuProiezionista {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                     nuovaDataOra = LocalDateTime.parse(dataStr + " " + oraStr, formatter);
                 } catch (DateTimeParseException e) {
-                    System.err.println("Formato ora non valido. Riprova.");
+                    System.out.println("\u001B[31m[ERRORE] Formato ora non valido. Riprova.\u001B[0m");
                 }
             } while (nuovaDataOra == null);
 
             if (gestoreProiezioni.modificaProiezione(p, nuovaDataOra)) {
-                System.out.println("Proiezione modificata con successo.");
+                System.out.println("[OK] Proiezione modificata con successo.");
             } else {
-                System.err.println("Errore durante la modifica.");
+                System.out.println("\u001B[31m[ERRORE] Errore durante la modifica.\u001B[0m");
             }
         }
     }
@@ -321,19 +336,21 @@ public class MenuProiezionista {
      */
     private void eliminaProiezione() {
         Scanner sc = new Scanner(System.in);
-        System.out.println("\n--- Elimina Proiezione ---");
+        System.out.println("\n-----------------------------------------");
+        System.out.println("           ELIMINA PROIEZIONE            ");
+        System.out.println("-----------------------------------------");
         Proiezione p = selezionaProiezione();
         if (p != null) {
             System.out.print("Sei sicuro di voler eliminare questa proiezione? (s/n): ");
             String conferm = sc.nextLine().trim();
             if (conferm.equalsIgnoreCase("s")) {
                 if (gestoreProiezioni.eliminaProiezione(p)) {
-                    System.out.println("Proiezione eliminata con successo.");
+                    System.out.println("[OK] Proiezione eliminata con successo.");
                 } else {
-                    System.err.println("Errore durante l'eliminazione.");
+                    System.out.println("\u001B[31m[ERRORE] Errore durante l'eliminazione.\u001B[0m");
                 }
             } else {
-                System.out.println("Operazione annullata.");
+                System.out.println("[INFO] Operazione annullata.");
             }
         }
     }
