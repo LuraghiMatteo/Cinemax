@@ -13,7 +13,8 @@ import java.util.Map;
 /**
  * Classe incaricata di gestire il ciclo di vita degli utenti (autenticazione,
  * registrazione e persistenza su file CSV).
- * * @author Matteo Luraghi - Matr: 765632 - Sede: VA
+ *
+ * @author Matteo Luraghi - Matr: 765632 - Sede: VA
  */
 public class GestoreUtenti {
 

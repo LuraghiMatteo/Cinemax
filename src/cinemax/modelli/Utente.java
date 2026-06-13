@@ -6,7 +6,9 @@ import java.time.LocalDate;
  * Classe astratta che definisce la struttura comune a tutti gli utenti del sistema CineMax.
  * Gestisce l'anagrafica di base, le credenziali di accesso crittografate ed il ruolo
  * aziendale all'interno dell'applicazione.
- * * @author Matteo Luraghi - Matr: 765632 - Sede: VA
+ *
+ * @author Matteo Luraghi - Matr: 765632 - Sede: VA
+ * @author Fabio Maffiolini - Matr: 765567 - Sede: VA
  */
 public abstract class Utente {
 
@@ -39,13 +41,53 @@ public abstract class Utente {
         this.luogoDomicilio = luogoDomicilio;
     }
 
-    // Getters
+    /**
+     * Restituisce il ruolo dell'utente nel sistema.
+     *
+     * @return Il ruolo dell'utente.
+     */
     public Ruolo getRuolo() { return ruolo; }
+
+    /**
+     * Restituisce il luogo di domicilio dell'utente.
+     *
+     * @return La stringa del domicilio.
+     */
     public String getLuogoDomicilio() { return luogoDomicilio; }
+
+    /**
+     * Restituisce la data di nascita dell'utente.
+     *
+     * @return La data di nascita (può essere null).
+     */
     public LocalDate getDataNascita() { return dataNascita; }
+
+    /**
+     * Restituisce la password crittografata dell'utente.
+     *
+     * @return La password hashata.
+     */
     public String getPassword() { return password; }
+
+    /**
+     * Restituisce lo username univoco dell'utente.
+     *
+     * @return Lo username dell'utente.
+     */
     public String getUsername() { return username; }
+
+    /**
+     * Restituisce il cognome dell'utente.
+     *
+     * @return Il cognome.
+     */
     public String getCognome() { return cognome; }
+
+    /**
+     * Restituisce il nome dell'utente.
+     *
+     * @return Il nome.
+     */
     public String getNome() { return nome; }
 
     /**
@@ -65,6 +107,9 @@ public abstract class Utente {
     /**
      * Sovrascrittura del metodo equals ereditato da Object per supportare il polimorfismo
      * e l'utilizzo corretto all'interno delle liste o collezioni di Java.
+     *
+     * @param o L'oggetto da confrontare.
+     * @return true se l'oggetto è un Utente con lo stesso username, false altrimenti.
      */
     @Override
     public boolean equals(Object o) {
@@ -78,6 +123,8 @@ public abstract class Utente {
     /**
      * Rigenera una vista testuale formattata a blocchi dei dettagli dell'utente,
      * ideale per la visualizzazione allineata all'interno della TUI.
+     *
+     * @return La stringa formattata.
      */
     @Override
     public String toString() {

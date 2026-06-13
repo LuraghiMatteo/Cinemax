@@ -82,7 +82,6 @@ data_ora_proiezione,titolo_film,genere,regista,anno,durata_minuti,eta_minima,pre
 "2018-02-06 13:00:00","Singin' in the Rain",COMEDY,"Stanley Donen",1952,103,0,6.5
 "2018-02-06 15:30:00","Hana-bi",CRIME,"Takeshi Kitano",1997,103,12,7.0
 "2018-02-07 10:00:00","Dog Day Afternoon",BIOGRAPHY,"Sidney Lumet",1975,125,0,6.5
-"2018-02-07 13:00:00","Dangal",ACTION,"Nitesh Tiwari",2016,161,0,7.5
 "2018-02-07 16:30:00","Ba wang bie ji",DRAMA,"Kaige Chen",1993,171,16,7.5
 "2018-02-08 10:00:00","American History X",DRAMA,"Tony Kaye",1998,119,16,8.5
 "2018-02-08 12:30:00","Lethal Weapon",ACTION,"Richard Donner",1987,109,12,7.0
@@ -7602,6 +7601,7 @@ data_ora_proiezione,titolo_film,genere,regista,anno,durata_minuti,eta_minima,pre
 "2026-07-13 10:00:00","The Graduate",COMEDY,"Mike Nichols",1967,106,12,6.5
 "2026-07-13 12:30:00","Giant",DRAMA,"George Stevens",1956,201,0,8.5
 "2026-07-13 17:00:00","Heat",CRIME,"Michael Mann",1995,170,12,7.0
+"2026-07-13 22:00:00","Chiedimi se sono felice",COMEDY,"Massimo Venier",2001,165,14,7.05
 "2026-07-14 10:00:00","The Longest Day",ACTION,"Ken Annakin",1962,178,0,8.0
 "2026-07-14 14:00:00","The World's Fastest Indian",BIOGRAPHY,"Roger Donaldson",2005,127,0,7.0
 "2026-07-15 10:30:00","The Wild Bunch",ACTION,"Sam Peckinpah",1969,145,12,7.5

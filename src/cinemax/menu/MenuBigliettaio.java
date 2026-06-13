@@ -13,11 +13,11 @@ import java.util.Scanner;
  * Classe strutturata secondo i canoni della programmazione a oggetti (OOP): incapsula il rispettivo
  * gestore delle prenotazioni come dipendenza d'istanza per manipolare i record del database.
  * Consente il monitoraggio in tempo reale del flusso di cassa giornaliero e l'esecuzione di ricerche storiche multicriterio.
- * * @author Matteo Luraghi - Matr: 765632 - Sede: VA
+ *
+ * @author Matteo Luraghi - Matr: 765632 - Sede: VA
  */
 public class MenuBigliettaio {
 
-    // Dipendenza di business logic incapsulata a livello d'istanza
     private final GestorePrenotazioni gestorePrenotazioni;
 
     /**

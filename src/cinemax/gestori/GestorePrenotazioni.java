@@ -1,6 +1,6 @@
 package cinemax.gestori;
 
-import cinemax.eccezioni.NumeroCampiErratoExeption;
+import cinemax.eccezioni.NumeroCampiErratoException;
 import cinemax.eccezioni.PostiEsauritiException;
 import cinemax.eccezioni.PrenotazioneException;
 import cinemax.modelli.Prenotazione;
@@ -421,7 +421,7 @@ public class GestorePrenotazioni {
                         System.out.println("Errore di formato dati alla riga [" + codice + "]: campi corrotti nel file.");
                     }
                 }else {
-                    throw new NumeroCampiErratoExeption("I campi ricevuti risultano diversi o insufficienti");
+                    throw new NumeroCampiErratoException("I campi ricevuti risultano diversi o insufficienti");
                 }
                 line = fIn.readLine();
             }

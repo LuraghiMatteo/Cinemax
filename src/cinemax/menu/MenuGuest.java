@@ -1,6 +1,6 @@
 package cinemax.menu;
 
-import cinemax.eccezioni.CostoNonValidoExeption;
+import cinemax.eccezioni.CostoNonValidoException;
 import cinemax.eccezioni.UtenteUsernameException;
 import cinemax.gestori.GestoreProiezioni;
 import cinemax.gestori.GestoreUtenti;
@@ -25,7 +25,6 @@ import java.util.Scanner;
  * Tutte le interazioni dell'utente sono validate per garantire un corretto
  * inserimento dei dati.
  *
- * @author Matteo Luraghi - Matr: 765632 - Sede: VA
  * @author Fabio Maffiolini - Matr: 765567 - Sede: VA
  */
 public class MenuGuest {
@@ -256,7 +255,7 @@ public class MenuGuest {
                         }
                     } catch (NumberFormatException e) {
                         System.err.println("Formato non valido.");
-                    } catch (CostoNonValidoExeption e) {
+                    } catch (CostoNonValidoException e) {
                         System.err.println(e.getMessage());
                     }
                     break;

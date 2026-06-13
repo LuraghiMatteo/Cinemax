@@ -6,7 +6,9 @@ import java.time.format.DateTimeFormatter;
  * Questa classe rappresenta l'oggetto prenotazione che può essere effettuata da un cliente.
  * Memorizza le informazioni essenziali quali il codice univoco identificativo, il cliente
  * che ha eseguito l'operazione, la proiezione di riferimento e il numero di posti riservati.
- * * @author Matteo Luraghi - Matr: 765632 - Sede: VA
+ *
+ * @author Matteo Luraghi - Matr: 765632 - Sede: VA
+ * @author Fabio Maffiolini - Matr: 765567 - Sede: VA
  */
 public class Prenotazione {
     private String codiceUnivoco; // Richiesto univoco dalle specifiche
@@ -29,13 +31,34 @@ public class Prenotazione {
         this.numeroPosti = numeroPosti;
     }
 
-    // Getters
+    /**
+     * Restituisce il codice univoco della prenotazione.
+     *
+     * @return Il codice alfanumerico.
+     */
     public String getCodiceUnivoco() { return codiceUnivoco; }
+
+    /**
+     * Restituisce il cliente associato alla prenotazione.
+     *
+     * @return L'oggetto {@link Cliente}.
+     */
     public Cliente getCliente() { return cliente; }
+
+    /**
+     * Restituisce la proiezione associata alla prenotazione.
+     *
+     * @return L'oggetto {@link Proiezione}.
+     */
     public Proiezione getProiezione() { return proiezione; }
+
+    /**
+     * Restituisce il numero di posti prenotati.
+     *
+     * @return Il numero di posti.
+     */
     public int getNumeroPosti() { return numeroPosti; }
 
-    // Setters
     /**
      * Consente di modificare o aggiornare la proiezione associata alla prenotazione.
      * Questo metodo si rivela fondamentale per supportare la logica di business del "cambio data"
@@ -50,14 +73,15 @@ public class Prenotazione {
     /**
      * Calcola il costo totale della prenotazione moltiplicando il numero di posti
      * per il costo del singolo biglietto della proiezione associata.
-     * * @return Il valore double corrispondente al costo complessivo in euro.
+     *
+     * @return Il valore double corrispondente al costo complessivo in euro.
      */
     public double calcolaCostoTotale() {
         return this.numeroPosti * this.proiezione.getCostoBiglietto();
     }
 
     /**
-     * Genera una rappresentazione testuale formattata ed esauriente della prenotazione.
+     * Genera una rappresentazione testuale formattata della prenotazione.
      * È specificatamente strutturata per rispondere ai requisiti di visualizzazione TUI
      * sia per il cliente che per il bigliettaio, mostrando i dati di riepilogo finanziario ed anagrafico.
      *
@@ -71,8 +95,7 @@ public class Prenotazione {
     }
 
     /**
-     * Converte i dati salienti della prenotazione in una stringa formattata secondo
-     * lo standard CSV classico (campi separati da virgola senza delimitatori testuali aggiuntivi).
+     * Converte i dati salienti della prenotazione in una stringa formattata secondo lo standard CSV classico.
      * Questo metodo estrae esclusivamente le chiavi esterne (username cliente, titolo film, data/ora)
      * per salvaguardare la consistenza del file ed evitare ridondanze nel file di persistenza.
      *

@@ -1,47 +1,68 @@
 package cinemax.gestori;
 
+import cinemax.eccezioni.DataNonValidaException;
+import cinemax.eccezioni.NumeroCampiErratoException;
 import cinemax.modelli.Film;
 import cinemax.modelli.Proiezione;
 import cinemax.modelli.Genere;
-import cinemax.eccezioni.CostoNonValidoExeption;
-import cinemax.eccezioni.DataNonValidaExeption;
-import cinemax.eccezioni.NumeroCampiErratoExeption;
+import cinemax.eccezioni.CostoNonValidoException;
 
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Gestisce la logica di business per le proiezioni cinematografiche.
  * Permette il caricamento e il salvataggio del palinsesto su file CSV, l'inserimento,
  * la modifica dell'orario e la cancellazione di proiezioni programmate.
  * Offre inoltre diversi metodi di ricerca filtrata per titolo, genere, date e prezzi.
- *
- * Il palinsesto è mantenuto costantemente in ordine cronologico.
+ * Il palinsesto è mantenuto costantemente all'interno di una HashMap per ottimizzare le ricerche.
  *
  * @author Fabio Maffiolini - Matr: 765567 - Sede: VA
  */
-
 public class GestoreProiezioni {
 
-    private List<Proiezione> palinsesto;
+    private Map<String, Proiezione> palinsesto;
     private final String FILE_PATH = "data" + File.separator + "proiezioni.csv";
 
     /**
-     * Inizializza un nuovo gestore delle proiezioni con un palinsesto vuoto.
+     * Costruttore della classe: Inizializza un nuovo gestore delle proiezioni con una mappa vuota.
      */
     public GestoreProiezioni() {
-        this.palinsesto = new ArrayList<>();
+        this.palinsesto = new HashMap<>();
+    }
+
+    /**
+     * Genera una chiave univoca in formato String per identificare una proiezione
+     * a partire dal titolo del film e dalla data/ora.
+     *
+     * @param titoloFilm Il titolo del film.
+     * @param dataOra    La data e l'ora della proiezione.
+     * @return Una stringa univoca utilizzabile come chiave nella mappa del palinsesto.
+     */
+    private String generaChiave(String titoloFilm, LocalDateTime dataOra) {
+        return titoloFilm.toLowerCase() + "_" + dataOra.toString();
+    }
+
+    /**
+     * Genera una chiave univoca in formato String a partire da un oggetto Proiezione.
+     *
+     * @param p L'oggetto Proiezione da cui ricavare la chiave.
+     * @return Una stringa univoca per l'identificazione della proiezione.
+     */
+    private String generaChiave(Proiezione p) {
+        return generaChiave(p.getFilm().getTitolo(), p.getDataOra());
     }
 
     // --- METODI PER IL PROIEZIONISTA ---
 
     /**
      * Aggiunge una nuova proiezione al palinsesto se non è già presente.
-     * Mantiene il palinsesto ordinato in ordine cronologico.
      *
      * @param proiezione la proiezione da aggiungere al palinsesto
      * @return true se l'inserimento ha avuto successo, false se la proiezione era già presente
@@ -51,19 +72,16 @@ public class GestoreProiezioni {
         if (proiezione == null) {
             throw new NullPointerException("La proiezione è null");
         }
-        if (palinsesto.contains(proiezione)) {
+        String key = generaChiave(proiezione);
+        if (palinsesto.containsKey(key)) {
             return false;
         }
-        boolean aggiunto = palinsesto.add(proiezione);
-        if (aggiunto) {
-            palinsesto.sort(null);
-        }
-        return aggiunto;
+        palinsesto.put(key, proiezione);
+        return true;
     }
 
     /**
      * Modifica la data e l'ora di una proiezione esistente nel palinsesto.
-     * Riordina il palinsesto cronologicamente dopo la modifica.
      *
      * @param proiezione la proiezione da modificare
      * @param dataOra    la nuova data e ora da assegnare alla proiezione
@@ -74,10 +92,11 @@ public class GestoreProiezioni {
         if (dataOra == null) {
             throw new NullPointerException("la nuova data e ora non devono essere null");
         }
-        int index = palinsesto.indexOf(proiezione);
-        if (index != -1) {
-            palinsesto.get(index).setDataOra(dataOra);
-            palinsesto.sort(null);
+        String chiave = generaChiave(proiezione); // Chiave del film da modificare
+        if (palinsesto.containsKey(chiave)) {
+            palinsesto.remove(chiave);
+            proiezione.setDataOra(dataOra);
+            palinsesto.put(generaChiave(proiezione), proiezione);
             return true;
         }
         return false;
@@ -90,7 +109,7 @@ public class GestoreProiezioni {
      * @return true se la proiezione è stata trovata e rimossa, false altrimenti
      */
     public boolean eliminaProiezione(Proiezione proiezione) {
-        return palinsesto.remove(proiezione);
+        return palinsesto.remove(generaChiave(proiezione)) != null;
     }
 
     // --- METODI DI RICERCA (Guest, Cliente, Bigliettaio) ---
@@ -111,11 +130,12 @@ public class GestoreProiezioni {
             return new ArrayList<>();
         }
         List<Proiezione> proiezioni = new ArrayList<>();
-        for (Proiezione p : palinsesto) {
+        for (Proiezione p : palinsesto.values()) {
             if (p.getFilm().getTitolo().toLowerCase().contains(titoloFilm.toLowerCase())) {
                 proiezioni.add(p);
             }
         }
+        proiezioni.sort(null);
         return proiezioni;
     }
 
@@ -131,11 +151,12 @@ public class GestoreProiezioni {
             throw new NullPointerException("Il genere è null");
         }
         List<Proiezione> proiezioni = new ArrayList<>();
-        for (Proiezione p : palinsesto) {
+        for (Proiezione p : palinsesto.values()) {
             if (p.getFilm().getGenere().equals(genere)) {
                 proiezioni.add(p);
             }
         }
+        proiezioni.sort(null);
         return proiezioni;
     }
 
@@ -147,7 +168,7 @@ public class GestoreProiezioni {
      * @param dataFine   la data di fine del periodo di ricerca (inclusa)
      * @return una lista delle proiezioni programmate nell'intervallo temporale
      * @throws NullPointerException  se la data di inizio o di fine è null
-     * @throws DataNonValidaExeption se la data di inizio è successiva alla data di fine
+     * @throws DataNonValidaException se la data di inizio è successiva alla data di fine
      */
     public List<Proiezione> cercaProiezione(LocalDate dataInizio, LocalDate dataFine) {
         List<Proiezione> proiezioni = new ArrayList<>();
@@ -155,14 +176,15 @@ public class GestoreProiezioni {
             throw new NullPointerException("dataInizio e dataFine non devono essere null!");
         }
         if (dataInizio.isAfter(dataFine)) {
-            throw new DataNonValidaExeption("La data d'inizio è maggiore della data di fine: dataIn = " + dataInizio + ", dataFine = " + dataFine);
+            throw new DataNonValidaException("La data d'inizio è maggiore della data di fine: dataIn = " + dataInizio + ", dataFine = " + dataFine);
         }
-        for (Proiezione p : palinsesto) {
+        for (Proiezione p : palinsesto.values()) {
             LocalDate dataP = p.getDataOra().toLocalDate();
             if (!dataP.isBefore(dataInizio) && !dataP.isAfter(dataFine)) {
                 proiezioni.add(p);
             }
         }
+        proiezioni.sort(null);
         return proiezioni;
     }
 
@@ -173,24 +195,24 @@ public class GestoreProiezioni {
      * @param prezzoMin il costo minimo del biglietto da filtrare
      * @param prezzoMax il costo massimo del biglietto da filtrare
      * @return una lista delle proiezioni che soddisfano il criterio di prezzo
-     * @throws CostoNonValidoExeption se il prezzo minimo o massimo è minore di zero,
+     * @throws CostoNonValidoException se il prezzo minimo o massimo è minore di zero,
      *                                oppure se il prezzo minimo supera il prezzo massimo
      */
     public List<Proiezione> cercaProiezione(double prezzoMin,  double prezzoMax) {
         List<Proiezione> proiezioni = new ArrayList<>();
         if (prezzoMin < 0 || prezzoMax < 0) {
-            throw new CostoNonValidoExeption("Il prezzo minimo e massimo devono essere >= 0: prezzoMin = " + prezzoMin + ", prezzoMax = " + prezzoMax);
+            throw new CostoNonValidoException("Il prezzo minimo e massimo devono essere >= 0: prezzoMin = " + prezzoMin + ", prezzoMax = " + prezzoMax);
         }
         if (prezzoMin > prezzoMax) {
-            throw new CostoNonValidoExeption("Il prezzo minimo deve essere minore o uguale del prezzo massimo: prezzoMin = " + prezzoMin + ", prezzoMax = " + prezzoMax);
+            throw new CostoNonValidoException("Il prezzo minimo deve essere minore o uguale del prezzo massimo: prezzoMin = " + prezzoMin + ", prezzoMax = " + prezzoMax);
         }
 
-        for (Proiezione p : palinsesto) {
+        for (Proiezione p : palinsesto.values()) {
             if (p.getCostoBiglietto() >= prezzoMin && p.getCostoBiglietto() <= prezzoMax) {
                 proiezioni.add(p);
             }
         }
-
+        proiezioni.sort(null);
         return proiezioni;
     }
 
@@ -205,23 +227,23 @@ public class GestoreProiezioni {
      * @param prezzoMin  il prezzo minimo del biglietto da filtrare (negativo se ignorato)
      * @param prezzoMax  il prezzo massimo del biglietto da filtrare (negativo se ignorato)
      * @return una lista delle proiezioni che soddisfano tutti i criteri specificati
-     * @throws DataNonValidaExeption  se le date sono fornite e la data di inizio è successiva a quella di fine
-     * @throws CostoNonValidoExeption se i prezzi sono forniti e il prezzo minimo è maggiore del prezzo massimo
+     * @throws DataNonValidaException  se le date sono fornite e la data di inizio è successiva a quella di fine
+     * @throws CostoNonValidoException se i prezzi sono forniti e il prezzo minimo è maggiore del prezzo massimo
      */
     public List<Proiezione> cercaProiezione(String titolo, Genere genere, LocalDate dataInizio, LocalDate dataFine, double prezzoMin, double prezzoMax) {
 
-        // 1. Controlli di validità sui parametri
+        // Controlli di validità sui parametri
         if (dataInizio != null && dataFine != null && dataInizio.isAfter(dataFine)) {
-            throw new DataNonValidaExeption("La data d'inizio è maggiore della data di fine: dataIn = " + dataInizio + ", dataFine = " + dataFine);
+            throw new DataNonValidaException("La data d'inizio è maggiore della data di fine: dataIn = " + dataInizio + ", dataFine = " + dataFine);
         }
         if (prezzoMin >= 0 && prezzoMax >= 0 && prezzoMin > prezzoMax) {
-            throw new CostoNonValidoExeption("Il prezzo minimo deve essere minore o uguale del prezzo massimo: prezzoMin = " + prezzoMin + ", prezzoMax = " + prezzoMax);
+            throw new CostoNonValidoException("Il prezzo minimo deve essere minore o uguale del prezzo massimo: prezzoMin = " + prezzoMin + ", prezzoMax = " + prezzoMax);
         }
 
         List<Proiezione> proiezioni = new ArrayList<>();
 
-        // 2. Iterazione sul palinsesto
-        for (Proiezione p : palinsesto) {
+        // Iterazione sul palinsesto
+        for (Proiezione p : palinsesto.values()) {
 
             // Filtro Titolo
             if (titolo != null && !titolo.trim().isEmpty()) {
@@ -253,11 +275,10 @@ public class GestoreProiezioni {
                 }
             }
 
-            // 3. Aggiunta alla lista
-            // Se il ciclo arriva a questa riga, significa che la proiezione ha superato tutti i filtri!
             proiezioni.add(p);
         }
 
+        proiezioni.sort(null);
         return proiezioni;
     }
 
@@ -276,12 +297,7 @@ public class GestoreProiezioni {
         if (dataOra == null) {
             throw new NullPointerException("La data e ora non devono essere null");
         }
-        for (Proiezione p : palinsesto) {
-            if (p.getFilm().getTitolo().equalsIgnoreCase(titoloFilm) && p.getDataOra().isEqual(dataOra)) {
-                return p;
-            }
-        }
-        return null;
+        return palinsesto.get(generaChiave(titoloFilm, dataOra));
     }
 
     /**
@@ -303,9 +319,9 @@ public class GestoreProiezioni {
     /**
      * Carica i dati delle proiezioni dal file CSV se questo esiste nel percorso prestabilito.
      * Ciascuna riga letta viene validata e convertita in un oggetto Proiezione.
-     * Al termine del caricamento, il palinsesto viene ordinato cronologicamente.
+     * Al termine del caricamento, il palinsesto viene memorizzato nella HashMap in RAM.
      *
-     * @throws NumeroCampiErratoExeption se una riga nel file CSV non contiene esattamente 8 campi
+     * @throws NumeroCampiErratoException se una riga nel file CSV non contiene esattamente 8 campi
      * @throws RuntimeException          se si verifica un errore durante la lettura del file
      */
     public void caricaDaFile() {
@@ -326,30 +342,26 @@ public class GestoreProiezioni {
                 }
 
                 if (dati.length != 8) {
-                    throw new NumeroCampiErratoExeption("Campi richiesti 8, ricevuti: " + dati.length);
+                    throw new NumeroCampiErratoException("Campi richiesti 8, ricevuti: " + dati.length);
                 }
 
-                palinsesto.add(
-                        new Proiezione(
-                                LocalDateTime.parse(dati[0], formatter),        //data e ora proiezione
-                                new Film(
-                                        dati[1],                                //titolo
-                                        Genere.valueOf(dati[2].toUpperCase().replace('-', '_' )),  //genere
-                                        dati[3],                                //regista
-                                        Integer.parseInt(dati[4]),              //anno
-                                        Integer.parseInt(dati[5]),              //durata
-                                        Integer.parseInt(dati[6])               //eta minima
-                                        ),
-                                Double.parseDouble(dati[7])                     //prezzo biglietto
-                        )
+                Proiezione nuovaProiezione = new Proiezione(
+                        LocalDateTime.parse(dati[0], formatter),        //data e ora proiezione
+                        new Film(
+                                dati[1],                                //titolo
+                                Genere.valueOf(dati[2].toUpperCase().replace('-', '_' )),  //genere
+                                dati[3],                                //regista
+                                Integer.parseInt(dati[4]),              //anno
+                                Integer.parseInt(dati[5]),              //durata
+                                Integer.parseInt(dati[6])               //eta minima
+                                ),
+                        Double.parseDouble(dati[7])                     //prezzo biglietto
                 );
+                palinsesto.put(generaChiave(nuovaProiezione), nuovaProiezione);
 
                 line = reader.readLine();
 
             }
-            
-            palinsesto.sort(null);
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -370,7 +382,9 @@ public class GestoreProiezioni {
             try (PrintStream ps = new PrintStream(new FileOutputStream(file, false))) {
                 ps.println("data_ora_proiezione,titolo_film,genere,regista,anno,durata_minuti,eta_minima,prezzo_biglietto");
 
-                for (Proiezione p : this.palinsesto) {
+                List<Proiezione> proiezioni = new ArrayList<>(this.palinsesto.values());
+                proiezioni.sort(null);
+                for (Proiezione p : proiezioni) {
                     ps.println(p.toCsv());
                 }
             }

@@ -27,6 +27,12 @@ public class MenuProiezionista {
 
     private final GestoreProiezioni gestoreProiezioni;
 
+    /**
+     * Costruttore completo della classe MenuProiezionista.
+     * Inietta la dipendenza del gestore proiezioni necessaria all'esecuzione delle query e dei comandi.
+     *
+     * @param gestoreProiezioni Il gestore globale delle proiezioni di sistema.
+     */
     public MenuProiezionista(GestoreProiezioni gestoreProiezioni) {
         this.gestoreProiezioni = gestoreProiezioni;
     }

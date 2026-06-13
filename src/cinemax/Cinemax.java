@@ -12,7 +12,23 @@ import cinemax.modelli.Utente;
 
 import java.util.Scanner;
 
+/**
+ * Classe principale di ingresso (Entry Point) per l'applicazione CineMax.
+ * Inizializza i gestori di business logic caricando i dati dai rispettivi file di persistenza (CSV),
+ * e avvia il ciclo interattivo del menu di front-end del cinema.
+ * Al momento della chiusura, garantisce il salvataggio persistente dello stato di tutti i database.
+ *
+ * @author Matteo Luraghi - Matr: 765632 - Sede: VA
+ * @author Fabio Maffiolini - Matr: 765567 - Sede: VA
+ */
 public class Cinemax {
+    /**
+     * Il punto di ingresso principale dell'applicazione.
+     * Gestisce la navigazione e lo smistamento dei comandi di login, registrazione
+     * e accesso alle aree dedicate (Cliente, Bigliettaio, Proiezionista).
+     *
+     * @param args Gli argomenti della riga di comando (non utilizzati).
+     */
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
