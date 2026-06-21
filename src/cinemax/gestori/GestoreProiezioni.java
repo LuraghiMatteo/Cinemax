@@ -307,9 +307,26 @@ public class GestoreProiezioni {
      * @param proiezioni la lista complessiva delle proiezioni da impaginare
      * @param index      l'indice iniziale da cui far partire la visualizzazione
      */
-    public static void visualizzaProiezioni(List<Proiezione> proiezioni, int index){
+    public static void visualizzaProiezioni(List<Proiezione> proiezioni, int index) {
+        visualizzaProiezioni(proiezioni, index, null);
+    }
+
+    /**
+     * Mostra a schermo un blocco di proiezioni (massimo 25) a partire dall'indice fornito,
+     * includendo anche i posti disponibili se viene passato il gestore delle prenotazioni.
+     *
+     * @param proiezioni          la lista complessiva delle proiezioni da impaginare
+     * @param index               l'indice iniziale da cui far partire la visualizzazione
+     * @param gestorePrenotazioni il gestore delle prenotazioni per calcolare i posti liberi (opzionale)
+     */
+    public static void visualizzaProiezioni(List<Proiezione> proiezioni, int index, GestorePrenotazioni gestorePrenotazioni) {
         for (int i = index; i < proiezioni.size() && i < index+25; i++) {
-            System.out.println("[" + i  + "]" + proiezioni.get(i));
+            Proiezione p = proiezioni.get(i);
+            if (gestorePrenotazioni != null) {
+                System.out.println("[" + i  + "]" + p + " | Posti disponibili: " + gestorePrenotazioni.calcolaPostiLiberi(p));
+            } else {
+                System.out.println("[" + i  + "]" + p);
+            }
         }
     }
 

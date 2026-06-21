@@ -107,7 +107,7 @@ public class MenuCliente {
         // Interrogazione del gestore per ottenere solo le proiezioni future
         List<Proiezione> proiezioni = gestoreProiezioni.cercaProiezione(null, null, oggi, fine, -1, -1);
         if (proiezioni.isEmpty()) {
-            System.out.println("[INFO] Al momento non ci sono proiezioni disponibili nel cinema.");
+            System.out.println("\u001B[38;5;208m[INFO] Al momento non ci sono proiezioni disponibili nel cinema.\u001B[0m");
             return;
         }
 
@@ -157,7 +157,7 @@ public class MenuCliente {
         List<Prenotazione> mie = gestorePrenotazioni.getPrenotazioniPerCliente(this.cliente);
 
         if (mie.isEmpty()) {
-            System.out.println("[INFO] Non hai ancora effettuato nessuna prenotazione.");
+            System.out.println("\u001B[38;5;208m[INFO] Non hai ancora effettuato nessuna prenotazione.\u001B[0m");
             return;
         }
 
@@ -195,7 +195,7 @@ public class MenuCliente {
         List<Proiezione> proiezioni = gestoreProiezioni.cercaProiezione(titoloFilm, null, oggi, fine, -1, -1);
 
         if (proiezioni.isEmpty()) {
-            System.out.println("[INFO] Al momento non ci sono altre date future disponibili per il film: " + titoloFilm);
+            System.out.println("\u001B[38;5;208m[INFO] Al momento non ci sono altre date future disponibili per il film: " + titoloFilm + "\u001B[0m");
             return;
         }
 
@@ -254,7 +254,7 @@ public class MenuCliente {
      */
     private void stampaListaPrenotazioni(List<Prenotazione> risultati) {
         if (risultati.isEmpty()) {
-            System.out.println("[INFO] Nessun elemento da mostrare.");
+            System.out.println("\u001B[38;5;208m[INFO] Nessun elemento da mostrare.\u001B[0m");
             return;
         }
         System.out.println("\nPrenotazioni trovate (" + risultati.size() + "):");
@@ -282,7 +282,7 @@ public class MenuCliente {
      */
     private void stampaListaProiezioni(List<Proiezione> risultati) {
         if (risultati.isEmpty()) {
-            System.out.println("[INFO] Nessun elemento da mostrare.");
+            System.out.println("\u001B[38;5;208m[INFO] Nessun elemento da mostrare.\u001B[0m");
             return;
         }
         System.out.println("\nProiezioni disponibili (" + risultati.size() + "):");
@@ -295,7 +295,8 @@ public class MenuCliente {
 
             // Ciclo locale per stampare il blocco corrente mantenendo intatto l'indice [i] per la selezione
             for (int i = index; i < fineBlocco; i++) {
-                System.out.println("[" + i + "] " + risultati.get(i));
+                Proiezione p = risultati.get(i);
+                System.out.println("[" + i + "] " + p + " | Posti disponibili: " + gestorePrenotazioni.calcolaPostiLiberi(p));
             }
 
             index += 25;

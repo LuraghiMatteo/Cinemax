@@ -254,7 +254,7 @@ public class MenuProiezionista {
             
             valide = gestoreProiezioni.cercaProiezione(titolo);
             if (valide.isEmpty()) {
-                System.out.println("[INFO] Nessuna proiezione trovata con questo titolo. Riprova.");
+                System.out.println("\u001B[38;5;208m[INFO] Nessuna proiezione trovata con questo titolo. Riprova.\u001B[0m");
             }
         } while (valide.isEmpty());
         

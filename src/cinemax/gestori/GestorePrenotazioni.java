@@ -360,7 +360,7 @@ public class GestorePrenotazioni {
                 return;
 
             } catch (IOException e) {
-                System.out.println("Errore critico: impossibile creare il file delle prenotazioni: " + e.getMessage());
+                System.out.println("\u001B[31mErrore critico: impossibile creare il file delle prenotazioni: " + e.getMessage() + "\u001B[0m");
                 return;
             }
         }
@@ -415,10 +415,10 @@ public class GestorePrenotazioni {
                     } catch (PrenotazioneException e) {
                         // Catturo l'eccezione e segnaliamo il problema specifico,
                         // ma NON interrompiamo il ciclo. La riga successiva verrà letta normalmente.
-                        System.out.println("Errore di integrità alla riga [" + codice + "]: " + e.getMessage());
+                        System.out.println("\u001B[31mErrore di integrità alla riga [" + codice + "]: " + e.getMessage() + "\u001B[0m");
                     } catch (Exception e) {
                         // Protezione da date malformate nel CSV
-                        System.out.println("Errore di formato dati alla riga [" + codice + "]: campi corrotti nel file.");
+                        System.out.println("\u001B[31mErrore di formato dati alla riga [" + codice + "]: campi corrotti nel file.\u001B[0m");
                     }
                 }else {
                     throw new NumeroCampiErratoException("I campi ricevuti risultano diversi o insufficienti");
@@ -429,7 +429,7 @@ public class GestorePrenotazioni {
             r.close();
 
         } catch (IOException e) {
-            System.out.println("Errore di lettura del file prenotazioni: " + e.getMessage());
+            System.out.println("\u001B[31mErrore di lettura del file prenotazioni: " + e.getMessage() + "\u001B[0m");
         }
     }
 
@@ -453,11 +453,11 @@ public class GestorePrenotazioni {
             w.close();
 
         } catch(FileNotFoundException e) {
-            System.out.println("Errore: Impossibile trovare o creare il file delle prenotazioni.");
-            System.out.println("Assicurati che la cartella 'data' esista nel percorso del progetto. Dettagli: " + e.getMessage());
+            System.out.println("\u001B[31mErrore: Impossibile trovare o creare il file delle prenotazioni.\u001B[0m");
+            System.out.println("\u001B[31mAssicurati che la cartella 'data' esista nel percorso del progetto. Dettagli: " + e.getMessage() + "\u001B[0m");
         } catch (IOException e) {
             // Questo gestisce errori generici di scrittura (es. file bloccato da un altro programma)
-            System.out.println("Errore di input/output durante la scrittura sul file delle prenotazioni: " + e.getMessage());
+            System.out.println("\u001B[31mErrore di input/output durante la scrittura sul file delle prenotazioni: " + e.getMessage() + "\u001B[0m");
         }
     }
 }

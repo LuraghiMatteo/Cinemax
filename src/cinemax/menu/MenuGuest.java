@@ -2,6 +2,7 @@ package cinemax.menu;
 
 import cinemax.eccezioni.CostoNonValidoException;
 import cinemax.eccezioni.UtenteUsernameException;
+import cinemax.gestori.GestorePrenotazioni;
 import cinemax.gestori.GestoreProiezioni;
 import cinemax.gestori.GestoreUtenti;
 import cinemax.modelli.Cliente;
@@ -31,16 +32,19 @@ public class MenuGuest {
 
     private final GestoreUtenti gestoreUtenti;
     private final GestoreProiezioni gestoreProiezioni;
+    private final GestorePrenotazioni gestorePrenotazioni;
 
     /**
      * Costruttore della classe MenuGuest.
      *
      * @param gestoreUtenti      Il gestore per le operazioni sugli utenti.
      * @param gestoreProiezioni  Il gestore per le ricerche sulle proiezioni.
+     * @param gestorePrenotazioni Il gestore delle prenotazioni per mostrare i posti disponibili.
      */
-    public MenuGuest(GestoreUtenti gestoreUtenti, GestoreProiezioni gestoreProiezioni) {
+    public MenuGuest(GestoreUtenti gestoreUtenti, GestoreProiezioni gestoreProiezioni, GestorePrenotazioni gestorePrenotazioni) {
         this.gestoreUtenti = gestoreUtenti;
         this.gestoreProiezioni = gestoreProiezioni;
+        this.gestorePrenotazioni = gestorePrenotazioni;
     }
 
     /**
@@ -429,7 +433,7 @@ public class MenuGuest {
         if (!valide.isEmpty()) {
             int index = 0;
             do {
-                gestoreProiezioni.visualizzaProiezioni(valide, index);
+                gestoreProiezioni.visualizzaProiezioni(valide, index, gestorePrenotazioni);
                 index += 25;
                 if (index < valide.size()) {
                     System.out.print("\n--> Mostrate " + index + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
@@ -437,7 +441,7 @@ public class MenuGuest {
                 }
             } while (index < valide.size());
         } else {
-            System.out.println("[INFO] Non ci sono proiezioni con questo titolo: " + titolo);
+            System.out.println("\u001B[38;5;208m[INFO] Non ci sono proiezioni con questo titolo: " + titolo + "\u001B[0m");
         }
     }
 
@@ -452,7 +456,7 @@ public class MenuGuest {
         if (!valide.isEmpty()) {
             int index = 0;
             do {
-                gestoreProiezioni.visualizzaProiezioni(valide, index);
+                gestoreProiezioni.visualizzaProiezioni(valide, index, gestorePrenotazioni);
                 index += 25;
                 if (index < valide.size()) {
                     System.out.print("\n--> Mostrate " + index + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
@@ -460,7 +464,7 @@ public class MenuGuest {
                 }
             } while (index < valide.size());
         } else {
-            System.out.println("[INFO] Non ci sono proiezioni con questo genere: " + genere);
+            System.out.println("\u001B[38;5;208m[INFO] Non ci sono proiezioni con questo genere: " + genere + "\u001B[0m");
         }
     }
 
@@ -476,7 +480,7 @@ public class MenuGuest {
         if (!valide.isEmpty()) {
             int index = 0;
             do {
-                gestoreProiezioni.visualizzaProiezioni(valide, index);
+                gestoreProiezioni.visualizzaProiezioni(valide, index, gestorePrenotazioni);
                 index += 25;
                 if (index < valide.size()) {
                     System.out.print("\n--> Mostrate " + index + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
@@ -485,9 +489,9 @@ public class MenuGuest {
             } while (index < valide.size());
         } else {
             if (min == max) {
-                System.out.println("[INFO] Non ci sono proiezioni con questo prezzo: " + min);
+                System.out.println("\u001B[38;5;208m[INFO] Non ci sono proiezioni con questo prezzo: " + min + "\u001B[0m");
             } else {
-                System.out.println("[INFO] Non ci sono proiezioni in questo range: " + min + " - " + max);
+                System.out.println("\u001B[38;5;208m[INFO] Non ci sono proiezioni in questo range: " + min + " - " + max + "\u001B[0m");
             }
         }
     }
@@ -504,7 +508,7 @@ public class MenuGuest {
         if (!valide.isEmpty()) {
             int index = 0;
             do {
-                gestoreProiezioni.visualizzaProiezioni(valide, index);
+                gestoreProiezioni.visualizzaProiezioni(valide, index, gestorePrenotazioni);
                 index += 25;
                 if (index < valide.size()) {
                     System.out.print("\n--> Mostrate " + index + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
@@ -512,9 +516,9 @@ public class MenuGuest {
                 }
             } while (index < valide.size());
         } else if (dataIn.isEqual(dataFin)) {
-            System.out.println("[INFO] Non ci sono proiezioni in questa data: " + dataIn);
+            System.out.println("\u001B[38;5;208m[INFO] Non ci sono proiezioni in questa data: " + dataIn + "\u001B[0m");
         } else {
-            System.out.println("[INFO] Non ci sono proiezioni in questo range: " + dataIn + " - " + dataFin);
+            System.out.println("\u001B[38;5;208m[INFO] Non ci sono proiezioni in questo range: " + dataIn + " - " + dataFin + "\u001B[0m");
         }
     }
 
@@ -534,7 +538,7 @@ public class MenuGuest {
         if (!valide.isEmpty()) {
             int index = 0;
             do {
-                gestoreProiezioni.visualizzaProiezioni(valide, index);
+                gestoreProiezioni.visualizzaProiezioni(valide, index, gestorePrenotazioni);
                 index += 25;
                 if (index < valide.size()) {
                     System.out.print("\n--> Mostrate " + index + " di " + valide.size() + " proiezioni. Premere INVIO per continuare...");
@@ -542,7 +546,7 @@ public class MenuGuest {
                 }
             } while (index < valide.size());
         } else {
-            System.out.println("[INFO] Non ci sono proiezioni con i filtri selezionati.");
+            System.out.println("\u001B[38;5;208m[INFO] Non ci sono proiezioni con i filtri selezionati.\u001B[0m");
         }
     }
 }

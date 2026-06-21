@@ -83,10 +83,10 @@ public class Cinemax {
                     }
                     break;
                 case "2":
-                    chiudi = new MenuGuest(gestoreUtenti, gestoreProiezioni).esegui();
+                    chiudi = new MenuGuest(gestoreUtenti, gestoreProiezioni, gestorePrenotazioni).esegui();
                     break;
                 case "3":
-                    new MenuGuest(gestoreUtenti, gestoreProiezioni).registraUtente();
+                    new MenuGuest(gestoreUtenti, gestoreProiezioni, gestorePrenotazioni).registraUtente();
                     break;
                 case "X":
                     System.out.println("Uscita dal programma in corso...");

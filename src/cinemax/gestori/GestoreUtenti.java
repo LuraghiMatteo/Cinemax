@@ -119,7 +119,7 @@ public class GestoreUtenti {
 
         } catch (NoSuchAlgorithmException e) {
             // scatta solo nel caso in cui l'ambiente Java di esecuzione non supporti l'algoritmo SHA-256.
-            System.out.println("Errore interno di sicurezza: Algoritmo di cifratura non trovato.");
+            System.out.println("\u001B[31mErrore interno di sicurezza: Algoritmo di cifratura non trovato.\u001B[0m");
             return null;
         }
     }
@@ -154,7 +154,7 @@ public class GestoreUtenti {
                 salvaSuFile();
                 return;
             } catch (IOException e) {
-                System.out.println("Errore critico nella creazione del database utenti: " + e.getMessage());
+                System.out.println("\u001B[31mErrore critico nella creazione del database utenti: " + e.getMessage() + "\u001B[0m");
                 return;
             }
         }
@@ -194,7 +194,7 @@ public class GestoreUtenti {
                 line = fIn.readLine();
             }
         } catch (IOException | IllegalArgumentException e) {
-            System.out.println("Errore durante la lettura o il parsing del file utenti: " + e.getMessage());
+            System.out.println("\u001B[31mErrore durante la lettura o il parsing del file utenti: " + e.getMessage() + "\u001B[0m");
         }
     }
 
@@ -225,7 +225,7 @@ public class GestoreUtenti {
 
             fOut.close();
         } catch (IOException e) {
-            System.out.println("Errore durante il salvataggio del file utenti: " + e.getMessage());
+            System.out.println("\u001B[31mErrore durante il salvataggio del file utenti: " + e.getMessage() + "\u001B[0m");
         }
     }
 }

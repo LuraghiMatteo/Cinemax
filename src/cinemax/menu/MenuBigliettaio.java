@@ -87,7 +87,7 @@ public class MenuBigliettaio {
         List<Prenotazione> odierne = this.gestorePrenotazioni.visualizzaPrenotazioniOdierne();
 
         if (odierne.isEmpty()) {
-            System.out.println("[INFO] Nessuna prenotazione registrata per gli spettacoli di oggi.");
+            System.out.println("\u001B[38;5;208m[INFO] Nessuna prenotazione registrata per gli spettacoli di oggi.\u001B[0m");
             return;
         }
 
@@ -128,7 +128,7 @@ public class MenuBigliettaio {
                         System.out.println("\n[OK] Prenotazione rintracciata:");
                         System.out.println(trovata);
                     } else {
-                        System.out.println("[INFO] Nessun record corrispondente al codice inserito.");
+                        System.out.println("\u001B[38;5;208m[INFO] Nessun record corrispondente al codice inserito.\u001B[0m");
                     }
                     break;
 
@@ -186,7 +186,7 @@ public class MenuBigliettaio {
      */
     private void stampalista(List<Prenotazione> risultati) {
         if (risultati.isEmpty()) {
-            System.out.println("[INFO] La ricerca non ha prodotto alcun risultato.");
+            System.out.println("\u001B[38;5;208m[INFO] La ricerca non ha prodotto alcun risultato.\u001B[0m");
             return;
         }
         System.out.println("\nPrenotazioni trovate (" + risultati.size() + "):");
