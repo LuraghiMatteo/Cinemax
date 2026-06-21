@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="ProgettoCinemax:jar">
+    <output-path>$PROJECT_DIR$/bin</output-path>
+    <root id="archive" name="ProgettoCinemax.jar">
+      <element id="module-output" name="ProgettoCinemax" />
+    </root>
+  </artifact>
+</component>
