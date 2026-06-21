@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class GestoreProiezioni {
 
-    private Map<String, Proiezione> palinsesto;
+    private Map<LocalDateTime, Proiezione> palinsesto;
     private final String FILE_PATH = "data" + File.separator + "proiezioni.csv";
 
     /**
@@ -38,65 +38,43 @@ public class GestoreProiezioni {
     }
 
     /**
-     * Genera una chiave univoca in formato String per identificare una proiezione
-     * a partire dal titolo del film e dalla data/ora.
-     *
-     * @param titoloFilm Il titolo del film.
-     * @param dataOra    La data e l'ora della proiezione.
-     * @return Una stringa univoca utilizzabile come chiave nella mappa del palinsesto.
-     */
-    private String generaChiave(String titoloFilm, LocalDateTime dataOra) {
-        return titoloFilm.toLowerCase() + "_" + dataOra.toString();
-    }
-
-    /**
-     * Genera una chiave univoca in formato String a partire da un oggetto Proiezione.
-     *
-     * @param p L'oggetto Proiezione da cui ricavare la chiave.
-     * @return Una stringa univoca per l'identificazione della proiezione.
-     */
-    private String generaChiave(Proiezione p) {
-        return generaChiave(p.getFilm().getTitolo(), p.getDataOra());
-    }
-
-    // --- METODI PER IL PROIEZIONISTA ---
-
-    /**
-     * Aggiunge una nuova proiezione al palinsesto se non è già presente.
+     * Aggiunge una nuova proiezione al palinsesto se non è già presente un'altra proiezione nella stessa data e ora.
      *
      * @param proiezione la proiezione da aggiungere al palinsesto
-     * @return true se l'inserimento ha avuto successo, false se la proiezione era già presente
+     * @return true se l'inserimento ha avuto successo, false se esiste già una proiezione con la stessa data e ora
      * @throws NullPointerException se la proiezione passata è null
      */
     public boolean aggiungiProiezione(Proiezione proiezione) {
         if (proiezione == null) {
             throw new NullPointerException("La proiezione è null");
         }
-        String key = generaChiave(proiezione);
-        if (palinsesto.containsKey(key)) {
+        if (palinsesto.containsKey(proiezione.getDataOra())) {
             return false;
         }
-        palinsesto.put(key, proiezione);
+        palinsesto.put(proiezione.getDataOra(), proiezione);
         return true;
     }
 
     /**
-     * Modifica la data e l'ora di una proiezione esistente nel palinsesto.
+     * Modifica la data e l'ora di una proiezione esistente nel palinsesto, assicurando che non ci sia un'altra proiezione nella stessa data e ora.
      *
      * @param proiezione la proiezione da modificare
      * @param dataOra    la nuova data e ora da assegnare alla proiezione
-     * @return true se la proiezione è stata trovata e modificata, false altrimenti
+     * @return true se la proiezione è stata trovata e modificata, false se c'è un conflitto con un'altra proiezione allo stesso orario
      * @throws NullPointerException se la nuova data e ora passata è null
      */
     public boolean modificaProiezione(Proiezione proiezione, LocalDateTime dataOra) {
         if (dataOra == null) {
             throw new NullPointerException("la nuova data e ora non devono essere null");
         }
-        String chiave = generaChiave(proiezione); // Chiave del film da modificare
-        if (palinsesto.containsKey(chiave)) {
-            palinsesto.remove(chiave);
+        if (palinsesto.containsKey(proiezione.getDataOra())) {
+            // Se c'è già una proiezione al nuovo orario (diverso da quello attuale), rifiutiamo
+            if (!proiezione.getDataOra().equals(dataOra) && palinsesto.containsKey(dataOra)) {
+                return false;
+            }
+            palinsesto.remove(proiezione.getDataOra());
             proiezione.setDataOra(dataOra);
-            palinsesto.put(generaChiave(proiezione), proiezione);
+            palinsesto.put(dataOra, proiezione);
             return true;
         }
         return false;
@@ -109,7 +87,7 @@ public class GestoreProiezioni {
      * @return true se la proiezione è stata trovata e rimossa, false altrimenti
      */
     public boolean eliminaProiezione(Proiezione proiezione) {
-        return palinsesto.remove(generaChiave(proiezione)) != null;
+        return palinsesto.remove(proiezione.getDataOra()) != null;
     }
 
     // --- METODI DI RICERCA (Guest, Cliente, Bigliettaio) ---
@@ -297,7 +275,11 @@ public class GestoreProiezioni {
         if (dataOra == null) {
             throw new NullPointerException("La data e ora non devono essere null");
         }
-        return palinsesto.get(generaChiave(titoloFilm, dataOra));
+        Proiezione p = palinsesto.get(dataOra);
+        if (p != null && p.getFilm().getTitolo().equalsIgnoreCase(titoloFilm)) {
+            return p;
+        }
+        return null;
     }
 
     /**
@@ -374,7 +356,7 @@ public class GestoreProiezioni {
                                 ),
                         Double.parseDouble(dati[7])                     //prezzo biglietto
                 );
-                palinsesto.put(generaChiave(nuovaProiezione), nuovaProiezione);
+                palinsesto.put(nuovaProiezione.getDataOra(), nuovaProiezione);
 
                 line = reader.readLine();
 

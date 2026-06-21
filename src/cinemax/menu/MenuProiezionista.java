@@ -1,5 +1,6 @@
 package cinemax.menu;
 
+import cinemax.gestori.GestorePrenotazioni;
 import cinemax.gestori.GestoreProiezioni;
 import cinemax.modelli.Film;
 import cinemax.modelli.Genere;
@@ -27,17 +28,20 @@ import java.util.Scanner;
 public class MenuProiezionista {
 
     private final GestoreProiezioni gestoreProiezioni;
+    private final GestorePrenotazioni gestorePrenotazioni;
     private final Proiezionista proiezionista;
 
     /**
      * Costruttore completo della classe MenuProiezionista.
-     * Inietta la dipendenza del gestore proiezioni e il profilo del proiezionista.
+     * Inietta la dipendenza del gestore proiezioni, del gestore prenotazioni e il profilo del proiezionista.
      *
-     * @param gestoreProiezioni Il gestore globale delle proiezioni di sistema.
-     * @param proiezionista     L'utente con ruolo Proiezionista autenticato.
+     * @param gestoreProiezioni    Il gestore globale delle proiezioni di sistema.
+     * @param gestorePrenotazioni  Il gestore globale delle prenotazioni di sistema.
+     * @param proiezionista        L'utente con ruolo Proiezionista autenticato.
      */
-    public MenuProiezionista(GestoreProiezioni gestoreProiezioni, Proiezionista proiezionista) {
+    public MenuProiezionista(GestoreProiezioni gestoreProiezioni, GestorePrenotazioni gestorePrenotazioni, Proiezionista proiezionista) {
         this.gestoreProiezioni = gestoreProiezioni;
+        this.gestorePrenotazioni = gestorePrenotazioni;
         this.proiezionista = proiezionista;
     }
 
@@ -324,7 +328,7 @@ public class MenuProiezionista {
             if (gestoreProiezioni.modificaProiezione(p, nuovaDataOra)) {
                 System.out.println("[OK] Proiezione modificata con successo.");
             } else {
-                System.out.println("\u001B[31m[ERRORE] Errore durante la modifica.\u001B[0m");
+                System.out.println("\u001B[31m[ERRORE] La data di modifica inserita non è valida\u001B[0m");
             }
         }
     }
@@ -341,6 +345,10 @@ public class MenuProiezionista {
         System.out.println("-----------------------------------------");
         Proiezione p = selezionaProiezione();
         if (p != null) {
+            if (gestorePrenotazioni.calcolaPostiLiberi(p) < 200) {
+                System.out.println("\u001B[31m[ERRORE] Impossibile eliminare: ci sono già prenotazioni registrate per questa proiezione.\u001B[0m");
+                return;
+            }
             System.out.print("Sei sicuro di voler eliminare questa proiezione? (s/n): ");
             String conferm = sc.nextLine().trim();
             if (conferm.equalsIgnoreCase("s")) {

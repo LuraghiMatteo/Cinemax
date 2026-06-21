@@ -84,17 +84,17 @@ public class Proiezione implements Comparable<Proiezione> {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Proiezione that)) return false;
-        return Double.compare(costoBiglietto, that.costoBiglietto) == 0 && Objects.equals(dataOra, that.dataOra) && Objects.equals(film, that.film);
+        return Objects.equals(dataOra, that.dataOra);
     }
 
     /**
-     * Calcola l'hash code per l'oggetto Proiezione basandosi su tutti i suoi campi.
+     * Calcola l'hash code per l'oggetto Proiezione basandosi sul campo dataOra.
      *
      * @return Il valore intero calcolato.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(dataOra, film, costoBiglietto);
+        return Objects.hash(dataOra);
     }
 
     /**
