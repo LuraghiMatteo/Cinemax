@@ -335,10 +335,7 @@ public class GestoreProiezioni {
 
             while (line != null) {
 
-                String[] dati = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-                for(int i = 0; i < dati.length; i++){
-                    dati[i] = dati[i].replace("\"", "");
-                }
+                String[] dati = analizzaRigaCSV(line);
 
                 if (dati.length != 8) {
                     throw new NumeroCampiErratoException("Campi richiesti 8, ricevuti: " + dati.length);
@@ -390,5 +387,32 @@ public class GestoreProiezioni {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Metodo per parsare una riga CSV tenendo conto delle virgolette
+     * e mantenendo gli eventuali spazi di formattazione intatti.
+     * Non utilizza regex per ragioni di leggibilità.
+     */
+    private String[] analizzaRigaCSV(String riga) {
+        List<String> campi = new ArrayList<>();
+        String campoAttuale = "";
+        boolean dentroVirgolette = false;
+
+        for (int i = 0; i < riga.length(); i++) {
+            char c = riga.charAt(i);
+
+            if (c == '\"') {
+                dentroVirgolette = !dentroVirgolette;
+            } else if (c == ',' && !dentroVirgolette) {
+                campi.add(campoAttuale);
+                campoAttuale = "";
+            } else {
+                campoAttuale += c;
+            }
+        }
+        campi.add(campoAttuale);
+
+        return campi.toArray(new String[0]);
     }
 }
